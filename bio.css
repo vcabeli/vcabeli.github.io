@@ -1,0 +1,16 @@
+body {
+    background-color: white;
+    color: black;
+    font-family: 'Helvetica', sans-serif;
+}
+
+a{
+    color: grey;
+}
+
+p.para{
+    text-align: justify;
+    margin-left: 30px;
+    font-family: 'Helvetica', sans-serif;
+    color:black;
+}
