@@ -1,7 +1,7 @@
 ---
 title: Introduction to information theoretic measures
 date: '2021-11-10'
-draft: yes
+draft: false
 bibFile : static/bib.json
 ---
 
