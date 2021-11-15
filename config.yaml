@@ -4,13 +4,13 @@ title: 'VCabeli'
 theme:
 - 'PaperMod'
 - hugo-cite
-disqusShortname: vcabe-li.disqus.com/admin
+disqusShortname: vcabe-li
 
 params:
     disableThemeToggle: true
 
     homeInfoParams:
         Title: Vincent's blog
-        Content: Disgressions about causality inference, information theory and maybe more !
+        Content: Disgressions about causal inference, information theory and maybe more !
 
     comments: true
