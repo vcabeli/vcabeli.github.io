@@ -101,23 +101,17 @@ Although the differences between entropy and differential entropy go
 beyond the scope of this thesis, it is still interesting to mention them
 to understand why discretization has been so popular for so long to
 estimate the entropy or mutual information between samples of continuous
-variables. Even though, as we will see in sections
-[\[sec:continuous_estimators\]](#sec:continuous_estimators){reference-type="ref"
-reference="sec:continuous_estimators"} and
-[\[sec:miic_estimator\]](#sec:miic_estimator){reference-type="ref"
-reference="sec:miic_estimator"}, one must be careful to discretize a
-continuous variable without introducing bias.
+variables. Even though, as we will see in future posts, one must be
+careful to discretize a continuous variable without introducing bias.
 
 Entropy and differential entropy behave similarly and are
 interchangeable in the settings that interest us, namely for the joint
 and conditional differential entropy, the chain rule and especially the
-relationship to mutual information. For the rest of section
-[1.1](#sec:mutual_info_definition){reference-type="ref"
-reference="sec:mutual_info_definition"}, the probability mass function
-$p(x)$ can be replaced by the density function $f(x)$, and $H(X)$ by
-$h(X)$ to switch from discrete to continuous random variables. The
-special case of mixed variables with both continuous and discrete parts
-will be reviewed at a the end of this section.
+relationship to mutual information. For the rest of this post, the 
+probability mass function $p(x)$ can be replaced by the density function
+$f(x)$, and $H(X)$ by $h(X)$ to switch from discrete to continuous random
+variables. The special case of mixed variables with both continuous and
+discrete parts will be reviewed later!
 
 We have established that information theory gives us the necessary tools
 to define the entropy of a random variable (which can be
@@ -130,8 +124,9 @@ relative entropy $D_\text{KL}(p \parallel q)$ is a measure of the
 difference between two distributions $p$ and $q$ defined on the same
 space $\mathcal{X}$:
 
-$$\label{eq:KL_def}
-    D_\text{KL}(p\parallel q) = \sum_{x \in \mathcal{X}} p(x) \log \frac{p(x)}{q(x)}$$
+$$
+    D_\text{KL}(p\parallel q) = \sum_{x \in \mathcal{X}} p(x) \log \frac{p(x)}{q(x)}
+$$
 
 Also called the Kullback-Leibler distance (although not a distance in
 the usual sense as it is not symmetric), it can thought of as the cost
@@ -154,8 +149,8 @@ to think of the divergence between the joint distribution and the
 product of marginals as a direct measure of the dependency. It is in
 fact the definition of the mutual information $\operatorname{I}(X;Y)$ :
 $$\begin{aligned}
-    \operatorname{I}(X;Y) &= D_\text{KL}\left(p(x,y) \parallel p(x) p(y)\right) \label{eq:discrete_mi_kl}\\\
-             &= \sum_{y \in Y} \sum_{x \in X} { p(x,y) \log{ \left(\frac{p(x,y)}{p(x)\,p(y)} \right) }} \label{eq:discrete_mi_sum}
+    \operatorname{I}(X;Y) &= D_\text{KL}\left(p(x,y) \parallel p(x) p(y)\right)\\\
+             &= \sum_{y \in Y} \sum_{x \in X} { p(x,y) \log{ \left(\frac{p(x,y)}{p(x)\,p(y)} \right) }}
 \end{aligned}$$
 
 In agreement with our interpretation of the relative entropy, assuming
@@ -164,10 +159,11 @@ literally *the extra bits* that are required to encode the interaction
 between $X$ and $Y$. It is always positive, or null if and only if $X$
 and $Y$ are independent.
 
+{{< figure src="/media/MI_venn.svg" title="" width="50%" align="center">}}
+
 Just like the other measures, it fits naturally in the \"chain rule\"
-and can be expressed intuitively in terms of entropies (Fig
-[\[fig:entropy_mutual_info\]](#fig:entropy_mutual_info){reference-type="ref"
-reference="fig:entropy_mutual_info"}):
+and can be expressed intuitively in terms of entropies.
+
 
 $$\begin{aligned} \label{eq:I_H_chainrule}
     \operatorname{I}(X;Y) &= \operatorname{H}(X) - \operatorname{H}(X|Y) \\\
@@ -220,11 +216,9 @@ a p-value from a mutual information estimation on sampled data, which
 makes it harder to communicate (although the benefits of standardising
 the p-value have been called into question
 {{<cite "amrhein_scientists_2019;leek_five_2017">}}). Different ideas to
-evaluate significativity will be presented in Section
-[\[sec:mi_estimators\]](#sec:mi_estimators){reference-type="ref"
-reference="sec:mi_estimators"}, but for now we are only interested in
-the \"oracle\" value, when the sample size $N$ tends to infinity and the
-strict equivalence
+evaluate significativity will be presented in a future post, but for now
+we are only interested in the \"oracle\" value, when the sample size $N$
+tends to infinity and the strict equivalence
 $X \indep Y \leftrightarrow \operatorname{I}(X;Y) = 0$
 holds.
 
@@ -274,16 +268,13 @@ coefficient $\rho$ is actually known :
 $$\label{eq:mi_gaussian}
     \operatorname{I}(X;Y) = -\frac{1}{2}\log(1 - \rho^2)$$
 
+{{< figure src="/media/MI_gaussian.svg" title="" width="40%" align="center">}}
+
 This equivalence is useful for practitioners who are unfamiliar with
 mutual information and wish to translate it to the better known
 dependence measure : thanks the self-equitability property if one could
 transform two variables to a bivariate Gaussian distribution preserving
-the signal-to-noise ratio, using Eq
-[\[eq:mi_gaussian\]](#eq:mi_gaussian){reference-type="ref"
-reference="eq:mi_gaussian"} one could then get the corresponding
-correlation coefficient (see Fig
-[\[fig:mi_value_gaussian\]](#fig:mi_value_gaussian){reference-type="ref"
-reference="fig:mi_value_gaussian"}).
+the signal-to-noise ratio, using the analytic result one could then get the corresponding correlation coefficient.
 
 ### Conditional information and interaction information
 
@@ -291,9 +282,9 @@ Information theory also allows us to measure the conditional dependence
 between two variables $X$ and $Y$ given a third, $Z$. The conditional
 mutual information is defined as the expected value of the mutual
 information between $X$ and $Y$ given a third variable $Z$:
-$$\begin{aligned}
-    \operatorname{I}(X;Y|Z) &= \mathbb{E}_z\left[D_\text{KL}\left(p((x,y)|z) \parallel p(x|z) p(y|z)\right)\right]
-\end{aligned}$$
+$$
+    \operatorname{I}(X;Y|Z) = \mathbb{E}\_z\left[D\_\text{KL}\left(p((x,y)|z) \parallel p(x|z) p(y|z)\right)\right]
+$$
 
 It is symmetrically decomposable into two-points mutual informations :
 $$\begin{aligned}
@@ -317,15 +308,17 @@ conditioning set $U_i$ : $$\begin{aligned} \label{eq:cond_chain_rule}
     \end{split}
 \end{aligned}$$
 
+{{< figure src="/media/MI_multi.svg" title="Note that the three-point information can be negative when two variables are pairwise-independent but become dependent when conditioning on the third." width="60%" align="center">}}
+
 Unlike the other measures introduced so far, it can be both positive and
 negative. A positive interaction information indicates that the three
 variables share some common information. It is negative when there is
 more information when taking the three variables together than
 independently. To illustrate this property, we borrow the concept of
 V-structure from causal diagrams. Consider the 4 possible DAGs with 3
-nodes and two edges, shown in Fig
-[\[fig:DAG_triplets\]](#fig:DAG_triplets){reference-type="ref"
-reference="fig:DAG_triplets"}.
+nodes and two edges, shown here :
+
+{{< figure src="/media/DAGs_3.svg" title="" width="100%" align="center">}}
 
 As Bayesian networks, the first three graphs encode the same conditional
 dependencies :
@@ -340,6 +333,8 @@ right shows a different pattern : $X$ and $Y$ are marginally independent
 ($\operatorname{I}(X;Y|Z)>0$). This is the situation where we \"create\"
 information by looking at the interaction of the three variable, and the
 three-point information $\operatorname{I}(X;Y;Z)$ is negative.
+It is in fact the basis of V-structures in Pearl's causal graphs, and
+the signature of causality in constraint-based network inference methods.
 
 
 ## Bibliography {#bibliography .unnumbered}
