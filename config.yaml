@@ -11,6 +11,6 @@ params:
 
     homeInfoParams:
         Title: Vincent's blog
-        Content: Disgressions about causal inference, information theory and maybe more !
+        Content: Digressions about causal inference, information theory and maybe more !
 
     comments: true

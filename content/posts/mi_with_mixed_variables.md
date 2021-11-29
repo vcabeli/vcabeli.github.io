@@ -1,7 +1,7 @@
 ---
-title: Mutual information on mixed variables
-date: '2021-11-10'
-draft: yes
+title: Mutual information with mixed variables
+date: '2021-11-17'
+draft: no
 bibFile : static/bib.json
 ---
 
@@ -14,7 +14,7 @@ discrete-discrete or discrete-continuous combinations. In the context of
 constraint-based approaches, another layer of difficulty is added as the
 same applies for the variables of the conditioning set.
 
-There also exists yet another type of variables that has the
+There also exists yet another type of variable that has the
 characteristics of both continuous and categorical variables, and fits
 neither definition. For example, think of the height measured in
 centimeters without decimals : it is not defined on a truly continuous
@@ -40,8 +40,8 @@ level of mRNA in the cell and $A$ the amplification process. Another
 straightforward example is the ReLU activation function
 $f(x) = \max(0,x)$ widely used as an activation function in artificial
 neural networks (Fig
-[\[fig:mixed_relu\]](#fig:mixed_relu){reference-type="ref"
-reference="fig:mixed_relu"}).
+
+{{< figure src="/media/relu.svg" title="The output of the ReLU function is a mixture : it has $p(0) > 0$ and is continuous for $x>0$" width="50%" align="center" >}}
 
 The ReLU function was actually discussed recently in the context of
 mutual information, and the problems that classical estimators face with
@@ -111,7 +111,7 @@ case for constraint based causal discovery approaches, where $X$ and $Y$
 are usually one-dimensional, and the conditioning set $Z$
 *few-dimensional*. Moreover, recent advances were made to better
 understand mutual information estimators, including on such mixed
-distributions, as will be discussed in the next section.
+distributions, as will be discussed in a future post.
 
 It is not obvious if we are still allowed to swap differential entropy
 for entropy when considering the mixed case. Crucially, it is not well
@@ -142,9 +142,7 @@ where the supremum is over all finite partitions $\mathcal{P}$ and
 $\mathcal{Q}$. It is called the master definition as it always applies,
 regardless of the nature of the marginal and joint distributions. For
 discrete variables it is simply equivalent to the definition of mutual
-information (Eq
-[\[eq:discrete_mi_sum\]](#eq:discrete_mi_sum){reference-type="ref"
-reference="eq:discrete_mi_sum"}), i.e. the partitions are fixed. For
+information, *i.e.* the partitions are fixed. For
 continuous variables, the supremum is obtained by refining $\mathcal{P}$
 and $\mathcal{Q}$ into finer and finer bins, monotonically increasing
 $\operatorname{I}({[X]}\_\mathcal{P};{[Y]}\_\mathcal{Q}) \nearrow$. When
@@ -154,13 +152,9 @@ approached as the numbers of bins tends to infinity). On a finite sample
 size however, adding bins to $\mathcal{P}$ and $\mathcal{Q}$ will
 inevitably end up overestimating the mutual information, to the limit of
 having one unique value per bin for which (which results in
-$\operatorname{I}(X;Y)=log(N)$). In section
-[\[sec:mi_estimators\]](#sec:mi_estimators){reference-type="ref"
-reference="sec:mi_estimators"}, we review previous work on choosing the
+$\operatorname{I}(X;Y)=log(N)$). In the next post, I will review previous work on choosing the
 appropriate number of bins to estimate $\operatorname{I}$ on continuous
-data and in section
-[\[sec:miic_estimator\]](#sec:miic_estimator){reference-type="ref"
-reference="sec:miic_estimator"} we introduce our solution based on the
+data and in another, I will introduce our solution based on the
 master definition.
 
 As a general rule, methods that assume a continuous probability density

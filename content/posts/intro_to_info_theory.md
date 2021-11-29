@@ -5,6 +5,15 @@ draft: false
 bibFile : static/bib.json
 ---
 
+How do you measure the dependency between two variables ?
+Formally speaking, $X$ and $Y$ are dependent, *i.e.* they share some information, if their joint distribution is not the same as the product of their marginals : $X \indep Y \Leftrightarrow p(X,Y) \not= p(X)p(Y)$.
+Only a few measures can measure dependency according to this strict equivalence : [Pearson correlation](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient) of course detects only linear relationships, it is generalized by the [distance correlation](https://en.wikipedia.org/wiki/Distance_correlation) for all distributions with finite first moments.
+We can also measure the covariance in a kernel space, which gives the powerful [Hilbert Schmidt Independence Criterion](http://alex.smola.org/teaching/iconip2006/iconip_4.pdf), or we can even use supervised learning and feature importance measures such as the [SHAP scores](https://github.com/slundberg/shap) to get a sense of what is predictive of $Y$.
+But each of these methods come with certain caveats and limitations, and may not be defined for the general case, without any assumption on $X$, $Y$, or $p(X,Y)$.
+
+
+{{< figure src="/media/dependencies.png" title="Examples of dependencies : $X \indep Y \Leftrightarrow p(X,Y) \not= p(X)p(Y)$" >}}
+
 The mutual information is a measure of the dependency between two random
 variables in the most general sense. It is agnostic to the nature of the
 random variables and of their relationship : noted
@@ -14,8 +23,8 @@ Claude Shannon in 1948 to characterize communication channels
 {{<cite "shannon_mathematical_1948">}} but it has found success in a wide range of
 applications since. It is still seen by many as the ideal dependency
 measure, although it is difficult to use in practice.
-
-{{< figure src="/media/dependencies.png" title="Examples of dependencies : $X \indep Y \Leftrightarrow p(X,Y) \not= p(X)p(Y)$" >}}
+This post introduces the necessary concepts to define the mutual information, largely inspired by {{<cite "cover_elements_2012">}}, and hints as to how it can be applied to causal graph inference.
+The difficult process of estimating these values from sampled data will be discussed in a later post.
 
 
 ## Definitions {#sec:mutual_info_definition}
