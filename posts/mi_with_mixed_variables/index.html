@@ -1,0 +1,699 @@
+<!doctype html><html lang=en dir=auto>
+<head><meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Mutual information with mixed variables | VCabeli</title>
+<meta name=keywords content>
+<meta name=description content="In many real-life datasets, particularly in medical records of patients, we might encounter both discrete and continuous variables and want to measure their interactions, without favoring one type of variable or the other. In other words, the dependency measure should scale with the signal-to-noise ratio the same way for continuous-continuous, discrete-discrete or discrete-continuous combinations. In the context of constraint-based approaches, another layer of difficulty is added as the same applies for the variables of the conditioning set.">
+<meta name=author content>
+<link rel=canonical href=https://vcabe.li/posts/mi_with_mixed_variables/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.9dca99a7fae9a1e5b7ada7addffbbc56005c68955546828e27120d9cd51003b9.css integrity="sha256-ncqZp/rpoeW3raet3/u8VgBcaJVVRoKOJxINnNUQA7k=" rel="preload stylesheet" as=style>
+<script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
+<link rel=icon href=https://vcabe.li/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://vcabe.li/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=https://vcabe.li/favicon-32x32.png>
+<link rel=apple-touch-icon href=https://vcabe.li/apple-touch-icon.png>
+<link rel=mask-icon href=https://vcabe.li/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<meta name=generator content="Hugo 0.89.4">
+<noscript>
+<style>#theme-toggle,.top-link{display:none}</style>
+<style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
+</noscript><meta property="og:title" content="Mutual information with mixed variables">
+<meta property="og:description" content="In many real-life datasets, particularly in medical records of patients, we might encounter both discrete and continuous variables and want to measure their interactions, without favoring one type of variable or the other. In other words, the dependency measure should scale with the signal-to-noise ratio the same way for continuous-continuous, discrete-discrete or discrete-continuous combinations. In the context of constraint-based approaches, another layer of difficulty is added as the same applies for the variables of the conditioning set.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://vcabe.li/posts/mi_with_mixed_variables/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-11-17T00:00:00+00:00">
+<meta property="article:modified_time" content="2021-11-17T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Mutual information with mixed variables">
+<meta name=twitter:description content="In many real-life datasets, particularly in medical records of patients, we might encounter both discrete and continuous variables and want to measure their interactions, without favoring one type of variable or the other. In other words, the dependency measure should scale with the signal-to-noise ratio the same way for continuous-continuous, discrete-discrete or discrete-continuous combinations. In the context of constraint-based approaches, another layer of difficulty is added as the same applies for the variables of the conditioning set.">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":2,"name":"Posts","item":"https://vcabe.li/posts/"},{"@type":"ListItem","position":3,"name":"Mutual information with mixed variables","item":"https://vcabe.li/posts/mi_with_mixed_variables/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Mutual information with mixed variables","name":"Mutual information with mixed variables","description":"In many real-life datasets, particularly in medical records of patients, we might encounter both discrete and continuous variables and want to measure their interactions, without favoring one type of variable or the other. In other words, the dependency measure should scale with the signal-to-noise ratio the same way for continuous-continuous, discrete-discrete or discrete-continuous combinations. In the context of constraint-based approaches, another layer of difficulty is added as the same applies for the variables of the conditioning set.","keywords":[],"articleBody":"In many real-life datasets, particularly in medical records of patients, we might encounter both discrete and continuous variables and want to measure their interactions, without favoring one type of variable or the other. In other words, the dependency measure should scale with the signal-to-noise ratio the same way for continuous-continuous, discrete-discrete or discrete-continuous combinations. In the context of constraint-based approaches, another layer of difficulty is added as the same applies for the variables of the conditioning set.\nThere also exists yet another type of variable that has the characteristics of both continuous and categorical variables, and fits neither definition. For example, think of the height measured in centimeters without decimals : it is not defined on a truly continuous interval as it has non-zero probability to take certain values, but it also has too many unique values, which are potentially infinite (but countable), to be considered discrete. Many estimators depend on one or the other of these properties (continuous density or finite number of levels) to measure the dependency between observations, and will likely struggle to give an unbiased estimation on this type of variable (Citation: Seok \u0026 Kang, 2015Seok, J. \u0026 Kang, Y. (2015). Mutual information between discrete variables with many categories using recursive adaptive partitioning. Scientific Reports, 5. 10981. ; Citation: Boeken \u0026 Mooij, 2020Boeken, P. \u0026 Mooij, J. (2020). A bayesian nonparametric conditional two-sample test with an application to local causal discovery. arXiv preprint arXiv:2008.07382. ; Citation: Boeken \u0026 Mooij, 2020Boeken, P. \u0026 Mooij, J. (2020). A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery. arXiv:2008.07382 [math, stat]. Retrieved from http://arxiv.org/abs/2008.07382 ; Citation: Gao, Kannan \u0026 al., 2017Gao, W., Kannan, S., Oh, S. \u0026 Viswanath, P. (2017). Estimating Mutual Information for Discrete-Continuous Mixtures. arXiv:1709.06212 [cs, math]. Retrieved from http://arxiv.org/abs/1709.06212 ; Citation: Zeng, Xia \u0026 al., 2018Zeng, X., Xia, Y. \u0026 Tong, H. (2018). Jackknife approach to the estimation of mutual information. Proceedings of the National Academy of Sciences, 115(40). 9956–9961. ) . Another problematic distribution is the mixture random variable, which is itself a mixture of discrete and continuous parts. A prominent example of this would be a distribution bounded by a minimum value before a certain threshold, and a continuous function of $x$ after it. In such a case the \"minimum value\" $x_{min}$ can be seen as the discrete part of the distribution as $p(x_{min})  0$, with the rest behaving like a continuous variable. Real-life examples include the values produced by real-time quantitative polymerase chain reaction (RT-qPCR), used to measure the levels of of messenger RNAs in a cell. One can view the data produced by RT-qPCR as $(A(x)~ \\text{if}~ x  \\text{threshold},~ \\text{else } 0)$ with $x$ the level of mRNA in the cell and $A$ the amplification process. Another straightforward example is the ReLU activation function $f(x) = \\max(0,x)$ widely used as an activation function in artificial neural networks (Fig\n The output of the ReLU function is a mixture : it has $p(0)  0$ and is continuous for $x0$   The ReLU function was actually discussed recently in the context of mutual information, and the problems that classical estimators face with such zero-inflated distribution. Naftali Tishby was a prominent computer scientist and physicist, who also contributed to signal processing and tried to apply information-theoretic concepts to gain intuition on deep learning algorithms. With Pereira and Bialek, he proposed the Information Bottleneck framework, a self-described surprisingly rich framework for discussing a variety of problems in signal processing and learning with information theory (Citation: Tishby, Pereira \u0026 al., 2000Tishby, N., Pereira, F. \u0026 Bialek, W. (2000). The information bottleneck method. arXiv:physics/0004057. Retrieved from http://arxiv.org/abs/physics/0004057 ) . Put simply, the idea of the Information Bottleneck is to \"squeeze\" a signal $X$ to a compressed representation $T$ while minimizing the loss of information with another relevant variable $Y$ : $$\\min_{p(t|x)} \\left\\{ \\operatorname{I}(X;T) - \\beta\\operatorname{I}(T;Y)\\right\\}$$ With the Lagrange multiplier $\\beta$ for controlling how much loss we can tolerate when predicting $Y$ from $T$ as opposed to $X$ (recall the DPI principle, since $Y \\rightarrow X \\rightarrow T$ is a Markov chain, $\\operatorname{I}(X;Y) \\geq \\operatorname{I}(T;Y)$). By minimizing this difference, we want to reduce $X$ to the only part that is relevant to $Y$, discarding the rest. This very general framework provides an elegant, if unpractical, solution to the majority of modern machine learning which has to learn which aspects of the input $X$ is useful for predicting $Y$, and which are noise.\nAs deep learning models gathered success faster than a comprehensive theory could definitely explain why they work and how they can be further improved, Shwartz-Ziv and Tishby published new evidence that they claimed could explain the process of training a deep neural network (Citation: Tishby \u0026 Zaslavsky, 2015Tishby, N. \u0026 Zaslavsky, N. (2015). Deep Learning and the Information Bottleneck Principle. arXiv:1503.02406 [cs]. Retrieved from http://arxiv.org/abs/1503.02406 ) . In their experiments, they equated the noisy encoding $T$ of the information bottleneck to the hidden layers of a deep neural network (DNN) and measured $\\operatorname{I}(X;T)$ and $\\operatorname{I}(T;Y)$ during the training process. Their results showed that the training process acts in two separate phases : first, the fitting phase in which the network maximizes $\\operatorname{I}(T;Y)$, and then a compression phase that minimizes $\\operatorname{I}(X;T)$. This was an unprecedented window inside the \"black box\" of deep learning and could potentially explain how they train, and most importantly how they are able to generalize. Later however, more studies were published and seemed to show that the two phases observed in the original experiment were not in fact an information-theoretic phenomena, but more of an artefact of how the mutual information is estimated between the hidden layers and $Y$. Saxe et al. could not replicate the two phases in other network architectures from the ones tested in the original study, and in particular no compression phase was observed when training with linear activation functions or ReLU (Citation: Saxe, Bansal \u0026 al., 2018Saxe, A., Bansal, Y., Dapello, J., Advani, M., Kolchinsky, A., Tracey, B. \u0026 Cox, D. (2018). On the Information Bottleneck Theory of Deep Learning. Retrieved from https://openreview.net/forum?id=ry_WPG-A- Citation: Saxe, Bansal \u0026 al., 2018Saxe, A., Bansal, Y., Dapello, J., Advani, M., Kolchinsky, A., Tracey, B. \u0026 Cox, D. (2018). On the Information Bottleneck Theory of Deep Learning. Retrieved from https://openreview.net/forum?id=ry_WPG-A-\u0026noteId=ry_WPG-A- ) . In response, Shwartz-Ziv and Tishby claimed that Saxe et al. had used a weak estimator of mutual information, and defended their general claim saying that \"when properly done, there are essentially the same fitting and compression phases\" on any network. There are however other reasons to believe the compression phase observed in the original study was more a result of geometric operations as the weights of the network are trained, and does not hold so much ground in information theory (Citation: Goldfeld, Berg \u0026 al., 2019Goldfeld, Z., Berg, E., Greenewald, K., Melnyk, I., Nguyen, N., Kingsbury, B. \u0026 Polyanskiy, Y. (2019). Estimating Information Flow in Deep Neural Networks. PMLR. Retrieved from https://proceedings.mlr.press/v97/goldfeld19a.html ; Citation: Geiger, 2021Geiger, B. (2021). On Information Plane Analyses of Neural Network Classifiers – A Review. arXiv:2003.09671 [cs, math, stat]. Retrieved from http://arxiv.org/abs/2003.09671 ) . Moreover, the simple DNNs are no longer used in practice, they are being replaced by extremely scaled up versions (with too many parameters in hidden layers for mutual information to ever be estimated) or more sophisticated architecture involving different training mechanisms like transfer learning, attention mechanisms etc... diverging from the simple picture of training that was examined.\nWe may not know the final word on the information bottleneck for deep learning, but it serves as a cautionary tale when we want to rely on mutual information estimates on big data (as the dimension of $X$ gets large) and the distributions are unfamiliar. It is fortunately not the case for constraint based causal discovery approaches, where $X$ and $Y$ are usually one-dimensional, and the conditioning set $Z$ few-dimensional. Moreover, recent advances were made to better understand mutual information estimators, including on such mixed distributions, as will be discussed in a future post.\nIt is not obvious if we are still allowed to swap differential entropy for entropy when considering the mixed case. Crucially, it is not well defined for mixture distribution which are defined neither by a probability density function nor a mass function alone.\nRecent efforts to estimate the mutual information in this general setting have relied on the Radon–Nikodym theorem. With $P_{XY}$ a probability measure on the space $\\mathcal{X} \\times \\mathcal{Y}$, $\\mathcal{X}$ and $\\mathcal{Y}$ being Euclidean spaces. If $P_{XY}$ is absolutely continuous with relation to $P_X P_Y$ : $$\\operatorname{I}(X;Y) = \\int_{\\mathcal{X}\\times \\mathcal{Y}} log \\frac{dP_{XY}}{dP_X P_Y}dP_{XY},$$ where $\\frac{dP_{XY}}{dP_X P_Y}$ is the Radon-Nikodym derivative. Note the only condition this definition is absolute continuity of $P_{XY}$, and if true it applies for all cases mentioned so far : $X$ and $Y$ are the same type of variable, $X$ or $Y$ is discrete and the other is continuous, or $X$, $Y$ or the joint distribution is a mixture itself. Moreover, the Radon-Nikodym derivative is computable in practice (Citation: Gao, Kannan \u0026 al., 2017Gao, W., Kannan, S., Oh, S. \u0026 Viswanath, P. (2017). Estimating Mutual Information for Discrete-Continuous Mixtures. arXiv:1709.06212 [cs, math]. Retrieved from http://arxiv.org/abs/1709.06212 ) .\nAnother way to deal with mixtures is to refer to the master definition of mutual information (Citation: Cover \u0026 Thomas, 2012Cover, T. \u0026 Thomas, J. (2012). Elements of information theory. John Wiley \u0026 Sons. ) . For two random variables $X$ and $Y$ discretized with partitions $\\mathcal{P}$ and $\\mathcal{Q}$ :\n$$ \\operatorname{I}(X;Y) = \\sup_{\\mathcal{P},\\mathcal{Q}} \\operatorname{I}([X]_{\\mathcal{P}};[Y]_{\\mathcal{Q}}) $$\nwhere the supremum is over all finite partitions $\\mathcal{P}$ and $\\mathcal{Q}$. It is called the master definition as it always applies, regardless of the nature of the marginal and joint distributions. For discrete variables it is simply equivalent to the definition of mutual information, i.e. the partitions are fixed. For continuous variables, the supremum is obtained by refining $\\mathcal{P}$ and $\\mathcal{Q}$ into finer and finer bins, monotonically increasing $\\operatorname{I}({[X]}_\\mathcal{P};{[Y]}_\\mathcal{Q}) \\nearrow$. When $N \\rightarrow \\infty$, this quantity tends to the real value of the mutual information (just as the entropy of a discretized variable is approached as the numbers of bins tends to infinity). On a finite sample size however, adding bins to $\\mathcal{P}$ and $\\mathcal{Q}$ will inevitably end up overestimating the mutual information, to the limit of having one unique value per bin for which (which results in $\\operatorname{I}(X;Y)=log(N)$). In the next post, I will review previous work on choosing the appropriate number of bins to estimate $\\operatorname{I}$ on continuous data and in another, I will introduce our solution based on the master definition.\nAs a general rule, methods that assume a continuous probability density function $p(x,y)$ over the domain of $X$ and $Y$ tend to not work well in the mixed case. Any dependence measure having this assumption will need to be adapted (with more or less difficulty), which may also affect the way we can evaluate its significativity for independence testing. On the other hand, one can still rely on the cumulative distribution function, which is well behaved even for mixture variables (although may not be smooth). For example, decision-tree-based algorithms like random forests and gradient boosting work well with such mixtures (although they are not adapted to all cases, for example they do not deal well with non-ordinal categorical variables with many levels).\nMutual information is one of the rare measures fit to deal with such distributions, all while keeping its desirable properties. Particularly, its strict equivalence with variable independence (and conditional independence), and its self-equitability property make it ideal for a general case constraint-based algorithm for causal inference. In the next subsection we show the equivalences between information theoretic measures and \"constraints\" in the causal diagrams.\nBibliography   Boeken \u0026 Mooij (2020)  Boeken, P. \u0026 Mooij, J. (2020). A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery. arXiv:2008.07382 [math, stat]. Retrieved from http://arxiv.org/abs/2008.07382    Cover \u0026 Thomas (2012)  Cover, T. \u0026 Thomas, J. (2012). Elements of information theory. John Wiley \u0026 Sons.    Gao, Kannan, Oh \u0026 Viswanath (2017)  Gao, W., Kannan, S., Oh, S. \u0026 Viswanath, P. (2017). Estimating Mutual Information for Discrete-Continuous Mixtures. arXiv:1709.06212 [cs, math]. Retrieved from http://arxiv.org/abs/1709.06212    Geiger (2021)  Geiger, B. (2021). On Information Plane Analyses of Neural Network Classifiers – A Review. arXiv:2003.09671 [cs, math, stat]. Retrieved from http://arxiv.org/abs/2003.09671    Goldfeld, Berg, Greenewald, Melnyk, Nguyen, Kingsbury \u0026 Polyanskiy (2019)  Goldfeld, Z., Berg, E., Greenewald, K., Melnyk, I., Nguyen, N., Kingsbury, B. \u0026 Polyanskiy, Y. (2019). Estimating Information Flow in Deep Neural Networks. PMLR. Retrieved from https://proceedings.mlr.press/v97/goldfeld19a.html    Saxe, Bansal, Dapello, Advani, Kolchinsky, Tracey \u0026 Cox (2018)  Saxe, A., Bansal, Y., Dapello, J., Advani, M., Kolchinsky, A., Tracey, B. \u0026 Cox, D. (2018). On the Information Bottleneck Theory of Deep Learning. Retrieved from https://openreview.net/forum?id=ry_WPG-A-\u0026noteId=ry_WPG-A-    Seok \u0026 Kang (2015)  Seok, J. \u0026 Kang, Y. (2015). Mutual information between discrete variables with many categories using recursive adaptive partitioning. Scientific Reports, 5. 10981.    Tishby \u0026 Zaslavsky (2015)  Tishby, N. \u0026 Zaslavsky, N. (2015). Deep Learning and the Information Bottleneck Principle. arXiv:1503.02406 [cs]. Retrieved from http://arxiv.org/abs/1503.02406    Tishby, Pereira \u0026 Bialek (2000)  Tishby, N., Pereira, F. \u0026 Bialek, W. (2000). The information bottleneck method. arXiv:physics/0004057. Retrieved from http://arxiv.org/abs/physics/0004057    Zeng, Xia \u0026 Tong (2018)  Zeng, X., Xia, Y. \u0026 Tong, H. (2018). Jackknife approach to the estimation of mutual information. Proceedings of the National Academy of Sciences, 115(40). 9956–9961.     ","wordCount":"2116","inLanguage":"en","datePublished":"2021-11-17T00:00:00Z","dateModified":"2021-11-17T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://vcabe.li/posts/mi_with_mixed_variables/"},"publisher":{"@type":"Organization","name":"VCabeli","logo":{"@type":"ImageObject","url":"https://vcabe.li/favicon.ico"}}}</script>
+</head>
+<body id=top>
+<script>window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
+<header class=header>
+<nav class=nav>
+<div class=logo>
+<a href=https://vcabe.li accesskey=h title="VCabeli (Alt + H)">VCabeli</a>
+<span class=logo-switches>
+</span>
+</div>
+<ul id=menu>
+</ul>
+</nav>
+</header>
+<main class=main>
+<article class=post-single>
+<header class=post-header>
+<h1 class=post-title>
+Mutual information with mixed variables
+</h1>
+<div class=post-meta><span title="2021-11-17 00:00:00 +0000 UTC">November 17, 2021</span>
+</div>
+</header>
+<div class=post-content><p>In many real-life datasets, particularly in medical records of patients,
+we might encounter both discrete and continuous variables and want to
+measure their interactions, <em>without favoring one type of variable or
+the other</em>. In other words, the dependency measure should scale with the
+signal-to-noise ratio the same way for continuous-continuous,
+discrete-discrete or discrete-continuous combinations. In the context of
+constraint-based approaches, another layer of difficulty is added as the
+same applies for the variables of the conditioning set.</p>
+<p>There also exists yet another type of variable that has the
+characteristics of both continuous and categorical variables, and fits
+neither definition. For example, think of the height measured in
+centimeters without decimals : it is not defined on a truly continuous
+interval as it has non-zero probability to take certain values, but it
+also has too many unique values, which are potentially infinite (but
+countable), to be considered discrete. Many estimators depend on one or
+the other of these properties (continuous density or finite number of
+levels) to measure the dependency between observations, and will likely
+struggle to give an unbiased estimation on this type of variable
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#seok_mutual_2015><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Junhee"><span itemprop=familyName>Seok</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yeong Seon"><span itemprop=familyName>Kang</span></span>, <span itemprop=datePublished>2015</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Seok</span>, 
+<meta itemprop=givenName content="Junhee">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kang</span>, 
+<meta itemprop=givenName content="Yeong Seon">
+Y.</span>
+ 
+(<span itemprop=datePublished>2015</span>).
+ <span itemprop=name>Mutual information between discrete variables with many categories using recursive adaptive partitioning</span>.<i>
+<span itemprop=about>Scientific Reports</span>, 5</i>. <span itemprop=pagination>10981</span>.</span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#boeken_bayesian_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Philip A."><span itemprop=familyName>Boeken</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Joris M."><span itemprop=familyName>Mooij</span></span>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Boeken</span>, 
+<meta itemprop=givenName content="Philip A.">
+P.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Mooij</span>, 
+<meta itemprop=givenName content="Joris M.">
+J.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>A bayesian nonparametric conditional two-sample test with an application to local causal discovery</span>.<i>
+<span itemprop=about>arXiv preprint arXiv:2008.07382</span></i>.</span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#boeken_bayesian_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Philip A."><span itemprop=familyName>Boeken</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Joris M."><span itemprop=familyName>Mooij</span></span>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Boeken</span>, 
+<meta itemprop=givenName content="Philip A.">
+P.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Mooij</span>, 
+<meta itemprop=givenName content="Joris M.">
+J.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery</span>.<i>
+<span itemprop=about>arXiv:2008.07382 [math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/2008.07382 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/2008.07382</a></span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#gao_estimating_2017><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Weihao"><span itemprop=familyName>Gao</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sreeram"><span itemprop=familyName>Kannan</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2017</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kannan</span>, 
+<meta itemprop=givenName content="Sreeram">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Oh</span>, 
+<meta itemprop=givenName content="Sewoong">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Viswanath</span>, 
+<meta itemprop=givenName content="Pramod">
+P.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>Estimating Mutual Information for Discrete-Continuous Mixtures</span>.<i>
+<span itemprop=about>arXiv:1709.06212 [cs, math]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1709.06212 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1709.06212</a></span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#zeng_jackknife_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Xianli"><span itemprop=familyName>Zeng</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yingcun"><span itemprop=familyName>Xia</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Zeng</span>, 
+<meta itemprop=givenName content="Xianli">
+X.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Xia</span>, 
+<meta itemprop=givenName content="Yingcun">
+Y.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tong</span>, 
+<meta itemprop=givenName content="Howell">
+H.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>Jackknife approach to the estimation of mutual information</span>.<i>
+<span itemprop=about>Proceedings of the National Academy of Sciences</span>, 115(40)</i>. <span itemprop=pagination>9956–9961</span>.</span>
+</span></span>)</span>
+.
+Another problematic distribution is the <em>mixture random variable</em>, which
+is itself a mixture of discrete and continuous parts. A prominent
+example of this would be a distribution bounded by a minimum value
+before a certain threshold, and a continuous function of $x$ after it.
+In such a case the "minimum value" $x_{min}$ can be seen as the
+discrete part of the distribution as $p(x_{min}) > 0$, with the rest
+behaving like a continuous variable. Real-life examples include the
+values produced by real-time quantitative polymerase chain reaction
+(RT-qPCR), used to measure the levels of of messenger RNAs in a cell.
+One can view the data produced by RT-qPCR as
+$(A(x)~ \text{if}~ x > \text{threshold},~ \text{else } 0)$ with $x$ the
+level of mRNA in the cell and $A$ the amplification process. Another
+straightforward example is the ReLU activation function
+$f(x) = \max(0,x)$ widely used as an activation function in artificial
+neural networks (Fig</p>
+<figure class=align-center>
+<img loading=lazy src=/media/relu.svg#center width=50%> <figcaption>
+The output of the ReLU function is a mixture : it has $p(0) > 0$ and is continuous for $x>0$
+</figcaption>
+</figure>
+<p>The ReLU function was actually discussed recently in the context of
+mutual information, and the problems that classical estimators face with
+such zero-inflated distribution. Naftali Tishby was a prominent computer
+scientist and physicist, who also contributed to signal processing and
+tried to apply information-theoretic concepts to gain intuition on deep
+learning algorithms. With Pereira and Bialek, he proposed the
+Information Bottleneck framework, a self-described <em>surprisingly rich
+framework for discussing a variety of problems in signal processing and
+learning</em> with information theory
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#tishby_information_2000><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Naftali"><span itemprop=familyName>Tishby</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Fernando C."><span itemprop=familyName>Pereira</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2000</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tishby</span>, 
+<meta itemprop=givenName content="Naftali">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Pereira</span>, 
+<meta itemprop=givenName content="Fernando C.">
+F.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bialek</span>, 
+<meta itemprop=givenName content="William">
+W.</span>
+ 
+(<span itemprop=datePublished>2000</span>).
+ <span itemprop=name>The information bottleneck method</span>.<i>
+<span itemprop=about>arXiv:physics/0004057</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/physics/0004057 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/physics/0004057</a></span>
+</span></span>)</span>
+. Put
+simply, the idea of the Information Bottleneck is to "squeeze" a
+signal $X$ to a compressed representation $T$ while minimizing the loss
+of information with another relevant variable $Y$ :
+$$\min_{p(t|x)} \left\{ \operatorname{I}(X;T) - \beta\operatorname{I}(T;Y)\right\}$$
+With the Lagrange multiplier $\beta$ for controlling how much loss we
+can tolerate when predicting $Y$ from $T$ as opposed to $X$ (recall the
+DPI principle, since $Y \rightarrow X \rightarrow T$ is a Markov chain,
+$\operatorname{I}(X;Y) \geq \operatorname{I}(T;Y)$). By minimizing this
+difference, we want to reduce $X$ to the only part that is relevant to
+$Y$, discarding the rest. This very general framework provides an
+elegant, if unpractical, solution to the majority of modern machine
+learning which has to learn which aspects of the input $X$ is useful for
+predicting $Y$, and which are noise.</p>
+<p>As deep learning models gathered success faster than a comprehensive
+theory could definitely explain why they work and how they can be
+further improved, Shwartz-Ziv and Tishby published new evidence that
+they claimed could explain the process of training a deep neural network
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#tishby_deep_2015><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Naftali"><span itemprop=familyName>Tishby</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Noga"><span itemprop=familyName>Zaslavsky</span></span>, <span itemprop=datePublished>2015</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tishby</span>, 
+<meta itemprop=givenName content="Naftali">
+N.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Zaslavsky</span>, 
+<meta itemprop=givenName content="Noga">
+N.</span>
+ 
+(<span itemprop=datePublished>2015</span>).
+ <span itemprop=name>Deep Learning and the Information Bottleneck Principle</span>.<i>
+<span itemprop=about>arXiv:1503.02406 [cs]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1503.02406 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1503.02406</a></span>
+</span></span>)</span>
+. In their experiments, they equated the noisy
+encoding $T$ of the information bottleneck to the hidden layers of a
+deep neural network (DNN) and measured $\operatorname{I}(X;T)$ and
+$\operatorname{I}(T;Y)$ during the training process. Their results
+showed that the training process acts in two separate phases : first,
+the fitting phase in which the network maximizes
+$\operatorname{I}(T;Y)$, and then a compression phase that minimizes
+$\operatorname{I}(X;T)$. This was an unprecedented window inside the
+"black box" of deep learning and could potentially explain how they
+train, and most importantly how they are able to generalize. Later
+however, more studies were published and seemed to show that the two
+phases observed in the original experiment were not in fact an
+information-theoretic phenomena, but more of an artefact of how the
+mutual information is estimated between the hidden layers and $Y$. Saxe
+et al. could not replicate the two phases in other network architectures
+from the ones tested in the original study, and in particular no
+compression phase was observed when training with linear activation
+functions or ReLU
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#saxe_information_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Andrew Michael"><span itemprop=familyName>Saxe</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yamini"><span itemprop=familyName>Bansal</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Saxe</span>, 
+<meta itemprop=givenName content="Andrew Michael">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bansal</span>, 
+<meta itemprop=givenName content="Yamini">
+Y.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Dapello</span>, 
+<meta itemprop=givenName content="Joel">
+J.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Advani</span>, 
+<meta itemprop=givenName content="Madhu">
+M.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kolchinsky</span>, 
+<meta itemprop=givenName content="Artemy">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tracey</span>, 
+<meta itemprop=givenName content="Brendan Daniel">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cox</span>, 
+<meta itemprop=givenName content="David Daniel">
+D.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>
+<i>On the Information Bottleneck Theory of Deep Learning</i></span>.
+ Retrieved from 
+<a href="https://openreview.net/forum?id=ry_WPG-A-" itemprop=identifier itemtype=https://schema.org/URL>https://openreview.net/forum?id=ry_WPG-A-</a></span>
+</span></span><span class=hugo-cite-group>
+<a href=#saxe_information_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Andrew Michael"><span itemprop=familyName>Saxe</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yamini"><span itemprop=familyName>Bansal</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Saxe</span>, 
+<meta itemprop=givenName content="Andrew Michael">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bansal</span>, 
+<meta itemprop=givenName content="Yamini">
+Y.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Dapello</span>, 
+<meta itemprop=givenName content="Joel">
+J.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Advani</span>, 
+<meta itemprop=givenName content="Madhu">
+M.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kolchinsky</span>, 
+<meta itemprop=givenName content="Artemy">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tracey</span>, 
+<meta itemprop=givenName content="Brendan Daniel">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cox</span>, 
+<meta itemprop=givenName content="David Daniel">
+D.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>On the Information Bottleneck Theory of Deep Learning</span>. Retrieved from 
+<a href="https://openreview.net/forum?id=ry_WPG-A-&noteId=ry_WPG-A-" itemprop=identifier itemtype=https://schema.org/URL>https://openreview.net/forum?id=ry_WPG-A-&noteId=ry_WPG-A-</a></span>
+</span></span>)</span>
+. In response, Shwartz-Ziv and
+Tishby claimed that Saxe et al. had used a weak estimator of mutual
+information, and defended their general claim saying that "when
+properly done, there are essentially the same fitting and compression
+phases" on any network. There are however other reasons to believe the
+compression phase observed in the original study was more a result of
+geometric operations as the weights of the network are trained, and does
+not hold so much ground in information theory
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#goldfeld_estimating_2019><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ziv"><span itemprop=familyName>Goldfeld</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ewout Van Den"><span itemprop=familyName>Berg</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2019</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Goldfeld</span>, 
+<meta itemprop=givenName content="Ziv">
+Z.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Berg</span>, 
+<meta itemprop=givenName content="Ewout Van Den">
+E.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Greenewald</span>, 
+<meta itemprop=givenName content="Kristjan">
+K.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Melnyk</span>, 
+<meta itemprop=givenName content="Igor">
+I.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Nguyen</span>, 
+<meta itemprop=givenName content="Nam">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kingsbury</span>, 
+<meta itemprop=givenName content="Brian">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Polyanskiy</span>, 
+<meta itemprop=givenName content="Yury">
+Y.</span>
+ 
+(<span itemprop=datePublished>2019</span>).
+ <span itemprop=name>
+<i>Estimating Information Flow in Deep Neural Networks</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>PMLR</span></span>. Retrieved from 
+<a href=https://proceedings.mlr.press/v97/goldfeld19a.html itemprop=identifier itemtype=https://schema.org/URL>https://proceedings.mlr.press/v97/goldfeld19a.html</a></span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#geiger_information_2021><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Bernhard C."><span itemprop=familyName>Geiger</span></span>, <span itemprop=datePublished>2021</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Geiger</span>, 
+<meta itemprop=givenName content="Bernhard C.">
+B.</span>
+ 
+(<span itemprop=datePublished>2021</span>).
+ <span itemprop=name>On Information Plane Analyses of Neural Network Classifiers – A Review</span>.<i>
+<span itemprop=about>arXiv:2003.09671 [cs, math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/2003.09671 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/2003.09671</a></span>
+</span></span>)</span>
+. Moreover, the
+simple DNNs are no longer used in practice, they are being replaced by
+extremely scaled up versions (with too many parameters in hidden layers
+for mutual information to ever be estimated) or more sophisticated
+architecture involving different training mechanisms like transfer
+learning, attention mechanisms etc... diverging from the simple picture
+of training that was examined.</p>
+<p>We may not know the final word on the information bottleneck for deep
+learning, but it serves as a cautionary tale when we want to rely on
+mutual information estimates on big data (as the dimension of $X$ gets
+large) and the distributions are unfamiliar. It is fortunately not the
+case for constraint based causal discovery approaches, where $X$ and $Y$
+are usually one-dimensional, and the conditioning set $Z$
+<em>few-dimensional</em>. Moreover, recent advances were made to better
+understand mutual information estimators, including on such mixed
+distributions, as will be discussed in a future post.</p>
+<p>It is not obvious if we are still allowed to swap differential entropy
+for entropy when considering the mixed case. Crucially, it is not well
+defined for mixture distribution which are defined neither by a
+probability density function nor a mass function alone.</p>
+<p>Recent efforts to estimate the mutual information in this general
+setting have relied on the Radon&ndash;Nikodym theorem. With $P_{XY}$ a
+probability measure on the space $\mathcal{X} \times \mathcal{Y}$,
+$\mathcal{X}$ and $\mathcal{Y}$ being Euclidean spaces. If $P_{XY}$ is
+absolutely continuous with relation to $P_X P_Y$ :
+$$\operatorname{I}(X;Y) = \int_{\mathcal{X}\times \mathcal{Y}} log \frac{dP_{XY}}{dP_X P_Y}dP_{XY},$$
+where $\frac{dP_{XY}}{dP_X P_Y}$ is the Radon-Nikodym derivative. Note
+the only condition this definition is absolute continuity of $P_{XY}$,
+and if true it applies for all cases mentioned so far : $X$ and $Y$ are
+the same type of variable, $X$ or $Y$ is discrete and the other is
+continuous, or $X$, $Y$ or the joint distribution is a mixture itself.
+Moreover, the Radon-Nikodym derivative is computable in practice
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#gao_estimating_2017><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Weihao"><span itemprop=familyName>Gao</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sreeram"><span itemprop=familyName>Kannan</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2017</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kannan</span>, 
+<meta itemprop=givenName content="Sreeram">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Oh</span>, 
+<meta itemprop=givenName content="Sewoong">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Viswanath</span>, 
+<meta itemprop=givenName content="Pramod">
+P.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>Estimating Mutual Information for Discrete-Continuous Mixtures</span>.<i>
+<span itemprop=about>arXiv:1709.06212 [cs, math]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1709.06212 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1709.06212</a></span>
+</span></span>)</span>
+.</p>
+<p>Another way to deal with mixtures is to refer to the master definition of mutual information
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#cover_elements_2012><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Thomas M."><span itemprop=familyName>Cover</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Joy A."><span itemprop=familyName>Thomas</span></span>, <span itemprop=datePublished>2012</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Book data-type=book><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cover</span>, 
+<meta itemprop=givenName content="Thomas M.">
+T.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Thomas</span>, 
+<meta itemprop=givenName content="Joy A.">
+J.</span> 
+(<span itemprop=datePublished>2012</span>).
+ <span itemprop=name>
+<i>Elements of information theory</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>John Wiley & Sons</span></span>.</span>
+</span></span>)</span>
+. For two random variables $X$ and $Y$ discretized with partitions $\mathcal{P}$ and $\mathcal{Q}$ :</p>
+<p>$$
+\operatorname{I}(X;Y) = \sup_{\mathcal{P},\mathcal{Q}} \operatorname{I}([X]_{\mathcal{P}};[Y]_{\mathcal{Q}})
+$$</p>
+<p>where the supremum is over all finite partitions $\mathcal{P}$ and
+$\mathcal{Q}$. It is called the master definition as it always applies,
+regardless of the nature of the marginal and joint distributions. For
+discrete variables it is simply equivalent to the definition of mutual
+information, <em>i.e.</em> the partitions are fixed. For
+continuous variables, the supremum is obtained by refining $\mathcal{P}$
+and $\mathcal{Q}$ into finer and finer bins, monotonically increasing
+$\operatorname{I}({[X]}_\mathcal{P};{[Y]}_\mathcal{Q}) \nearrow$. When
+$N \rightarrow \infty$, this quantity tends to the real value of the
+mutual information (just as the entropy of a discretized variable is
+approached as the numbers of bins tends to infinity). On a finite sample
+size however, adding bins to $\mathcal{P}$ and $\mathcal{Q}$ will
+inevitably end up overestimating the mutual information, to the limit of
+having one unique value per bin for which (which results in
+$\operatorname{I}(X;Y)=log(N)$). In the next post, I will review previous work on choosing the
+appropriate number of bins to estimate $\operatorname{I}$ on continuous
+data and in another, I will introduce our solution based on the
+master definition.</p>
+<p>As a general rule, methods that assume a continuous probability density
+function $p(x,y)$ over the domain of $X$ and $Y$ tend to not work well
+in the mixed case. Any dependence measure having this assumption will
+need to be adapted (with more or less difficulty), which may also affect
+the way we can evaluate its significativity for independence testing. On
+the other hand, one can still rely on the cumulative distribution
+function, which is well behaved even for mixture variables (although may
+not be smooth). For example, decision-tree-based algorithms like random
+forests and gradient boosting work well with such mixtures (although
+they are not adapted to all cases, for example they do not deal well
+with non-ordinal categorical variables with many levels).</p>
+<p>Mutual information is one of the rare measures fit to deal with such
+distributions, all while keeping its desirable properties. Particularly,
+its strict equivalence with variable independence (and conditional
+independence), and its self-equitability property make it ideal for a
+general case constraint-based algorithm for causal inference. In the
+next subsection we show the equivalences between information theoretic
+measures and "constraints" in the causal diagrams.</p>
+<h2 id=bibliography class=unnumbered>Bibliography<a hidden class=anchor aria-hidden=true href=#bibliography>#</a></h2>
+<section class=hugo-cite-bibliography>
+<dl>
+<div id=boeken_bayesian_2020>
+<dt>
+Boeken & Mooij
+(2020)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Boeken</span>, 
+<meta itemprop=givenName content="Philip A.">
+P.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Mooij</span>, 
+<meta itemprop=givenName content="Joris M.">
+J.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>A Bayesian Nonparametric Conditional Two-sample Test with an Application to Local Causal Discovery</span>.<i>
+<span itemprop=about>arXiv:2008.07382 [math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/2008.07382 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/2008.07382</a></span>
+</dd>
+</div>
+<div id=cover_elements_2012>
+<dt>
+Cover & Thomas
+(2012)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Book data-type=book><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cover</span>, 
+<meta itemprop=givenName content="Thomas M.">
+T.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Thomas</span>, 
+<meta itemprop=givenName content="Joy A.">
+J.</span> 
+(<span itemprop=datePublished>2012</span>).
+ <span itemprop=name>
+<i>Elements of information theory</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>John Wiley & Sons</span></span>.</span>
+</dd>
+</div>
+<div id=gao_estimating_2017>
+<dt>
+Gao, 
+Kannan, 
+Oh & Viswanath
+(2017)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kannan</span>, 
+<meta itemprop=givenName content="Sreeram">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Oh</span>, 
+<meta itemprop=givenName content="Sewoong">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Viswanath</span>, 
+<meta itemprop=givenName content="Pramod">
+P.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>Estimating Mutual Information for Discrete-Continuous Mixtures</span>.<i>
+<span itemprop=about>arXiv:1709.06212 [cs, math]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1709.06212 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1709.06212</a></span>
+</dd>
+</div>
+<div id=geiger_information_2021>
+<dt>
+Geiger
+(2021)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Geiger</span>, 
+<meta itemprop=givenName content="Bernhard C.">
+B.</span>
+ 
+(<span itemprop=datePublished>2021</span>).
+ <span itemprop=name>On Information Plane Analyses of Neural Network Classifiers – A Review</span>.<i>
+<span itemprop=about>arXiv:2003.09671 [cs, math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/2003.09671 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/2003.09671</a></span>
+</dd>
+</div>
+<div id=goldfeld_estimating_2019>
+<dt>
+Goldfeld, 
+Berg, 
+Greenewald, 
+Melnyk, 
+Nguyen, 
+Kingsbury & Polyanskiy
+(2019)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Goldfeld</span>, 
+<meta itemprop=givenName content="Ziv">
+Z.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Berg</span>, 
+<meta itemprop=givenName content="Ewout Van Den">
+E.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Greenewald</span>, 
+<meta itemprop=givenName content="Kristjan">
+K.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Melnyk</span>, 
+<meta itemprop=givenName content="Igor">
+I.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Nguyen</span>, 
+<meta itemprop=givenName content="Nam">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kingsbury</span>, 
+<meta itemprop=givenName content="Brian">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Polyanskiy</span>, 
+<meta itemprop=givenName content="Yury">
+Y.</span>
+ 
+(<span itemprop=datePublished>2019</span>).
+ <span itemprop=name>
+<i>Estimating Information Flow in Deep Neural Networks</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>PMLR</span></span>. Retrieved from 
+<a href=https://proceedings.mlr.press/v97/goldfeld19a.html itemprop=identifier itemtype=https://schema.org/URL>https://proceedings.mlr.press/v97/goldfeld19a.html</a></span>
+</dd>
+</div>
+<div id=saxe_information_2018>
+<dt>
+Saxe, 
+Bansal, 
+Dapello, 
+Advani, 
+Kolchinsky, 
+Tracey & Cox
+(2018)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Saxe</span>, 
+<meta itemprop=givenName content="Andrew Michael">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bansal</span>, 
+<meta itemprop=givenName content="Yamini">
+Y.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Dapello</span>, 
+<meta itemprop=givenName content="Joel">
+J.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Advani</span>, 
+<meta itemprop=givenName content="Madhu">
+M.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kolchinsky</span>, 
+<meta itemprop=givenName content="Artemy">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tracey</span>, 
+<meta itemprop=givenName content="Brendan Daniel">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cox</span>, 
+<meta itemprop=givenName content="David Daniel">
+D.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>On the Information Bottleneck Theory of Deep Learning</span>. Retrieved from 
+<a href="https://openreview.net/forum?id=ry_WPG-A-&noteId=ry_WPG-A-" itemprop=identifier itemtype=https://schema.org/URL>https://openreview.net/forum?id=ry_WPG-A-&noteId=ry_WPG-A-</a></span>
+</dd>
+</div>
+<div id=seok_mutual_2015>
+<dt>
+Seok & Kang
+(2015)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Seok</span>, 
+<meta itemprop=givenName content="Junhee">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kang</span>, 
+<meta itemprop=givenName content="Yeong Seon">
+Y.</span>
+ 
+(<span itemprop=datePublished>2015</span>).
+ <span itemprop=name>Mutual information between discrete variables with many categories using recursive adaptive partitioning</span>.<i>
+<span itemprop=about>Scientific Reports</span>, 5</i>. <span itemprop=pagination>10981</span>.</span>
+</dd>
+</div>
+<div id=tishby_deep_2015>
+<dt>
+Tishby & Zaslavsky
+(2015)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tishby</span>, 
+<meta itemprop=givenName content="Naftali">
+N.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Zaslavsky</span>, 
+<meta itemprop=givenName content="Noga">
+N.</span>
+ 
+(<span itemprop=datePublished>2015</span>).
+ <span itemprop=name>Deep Learning and the Information Bottleneck Principle</span>.<i>
+<span itemprop=about>arXiv:1503.02406 [cs]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1503.02406 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1503.02406</a></span>
+</dd>
+</div>
+<div id=tishby_information_2000>
+<dt>
+Tishby, 
+Pereira & Bialek
+(2000)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tishby</span>, 
+<meta itemprop=givenName content="Naftali">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Pereira</span>, 
+<meta itemprop=givenName content="Fernando C.">
+F.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bialek</span>, 
+<meta itemprop=givenName content="William">
+W.</span>
+ 
+(<span itemprop=datePublished>2000</span>).
+ <span itemprop=name>The information bottleneck method</span>.<i>
+<span itemprop=about>arXiv:physics/0004057</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/physics/0004057 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/physics/0004057</a></span>
+</dd>
+</div>
+<div id=zeng_jackknife_2018>
+<dt>
+Zeng, 
+Xia & Tong
+(2018)</dt>
+<dd>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Zeng</span>, 
+<meta itemprop=givenName content="Xianli">
+X.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Xia</span>, 
+<meta itemprop=givenName content="Yingcun">
+Y.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tong</span>, 
+<meta itemprop=givenName content="Howell">
+H.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>Jackknife approach to the estimation of mutual information</span>.<i>
+<span itemprop=about>Proceedings of the National Academy of Sciences</span>, 115(40)</i>. <span itemprop=pagination>9956–9961</span>.</span>
+</dd>
+</div>
+</dl>
+</section>
+</div>
+<footer class=post-footer>
+</footer><div id=disqus_thread></div>
+<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//vcabe-li.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
+<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</article>
+</main>
+<script type=text/javascript defer>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],macros:{indep:"{\\perp\\!\\!\\!\\perp}",notindep:"{\\not\\perp\\!\\!\\!\\perp}"}},svg:{fontCache:'global'}}</script>
+<script type=text/javascript id=MathJax-script defer src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script>
+<script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js type=text/javascript></script>
+<link rel=stylesheet type=text/css href=/hugo-cite.css>
+</body>
+</html>
