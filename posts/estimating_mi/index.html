@@ -1,0 +1,1165 @@
+<!doctype html><html lang=en dir=auto>
+<head><meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Estimating mutual information on finite samples | VCabeli</title>
+<meta name=keywords content>
+<meta name=description content="The previous posts established why we would want to estimate information-theoretic quantities from data, and now we will study how and how well it can be done. Several decades of research later, and almost as many different estimators as there were applications, it may come as a surprise that many basic questions remain unanswered (although recent progress has been made, especially in the continuous case). To understand why, recall that mutual information $\II(X;Y)$ is defined for $X$ and $Y$ of any dimensions.">
+<meta name=author content>
+<link rel=canonical href=https://vcabe.li/posts/estimating_mi/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.9dca99a7fae9a1e5b7ada7addffbbc56005c68955546828e27120d9cd51003b9.css integrity="sha256-ncqZp/rpoeW3raet3/u8VgBcaJVVRoKOJxINnNUQA7k=" rel="preload stylesheet" as=style>
+<script defer crossorigin=anonymous src=/assets/js/highlight.min.7680afc38aa6b15ddf158a4f3780b7b1f7dde7e91d26f073e6229bb7a0793c92.js integrity="sha256-doCvw4qmsV3fFYpPN4C3sffd5+kdJvBz5iKbt6B5PJI=" onload=hljs.initHighlightingOnLoad()></script>
+<link rel=icon href=https://vcabe.li/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://vcabe.li/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=https://vcabe.li/favicon-32x32.png>
+<link rel=apple-touch-icon href=https://vcabe.li/apple-touch-icon.png>
+<link rel=mask-icon href=https://vcabe.li/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<meta name=generator content="Hugo 0.89.4">
+<noscript>
+<style>#theme-toggle,.top-link{display:none}</style>
+<style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
+</noscript><meta property="og:title" content="Estimating mutual information on finite samples">
+<meta property="og:description" content="The previous posts established why we would want to estimate information-theoretic quantities from data, and now we will study how and how well it can be done. Several decades of research later, and almost as many different estimators as there were applications, it may come as a surprise that many basic questions remain unanswered (although recent progress has been made, especially in the continuous case). To understand why, recall that mutual information $\II(X;Y)$ is defined for $X$ and $Y$ of any dimensions.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://vcabe.li/posts/estimating_mi/"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2021-11-24T00:00:00+00:00">
+<meta property="article:modified_time" content="2021-11-24T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Estimating mutual information on finite samples">
+<meta name=twitter:description content="The previous posts established why we would want to estimate information-theoretic quantities from data, and now we will study how and how well it can be done. Several decades of research later, and almost as many different estimators as there were applications, it may come as a surprise that many basic questions remain unanswered (although recent progress has been made, especially in the continuous case). To understand why, recall that mutual information $\II(X;Y)$ is defined for $X$ and $Y$ of any dimensions.">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":2,"name":"Posts","item":"https://vcabe.li/posts/"},{"@type":"ListItem","position":3,"name":"Estimating mutual information on finite samples","item":"https://vcabe.li/posts/estimating_mi/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Estimating mutual information on finite samples","name":"Estimating mutual information on finite samples","description":"The previous posts established why we would want to estimate information-theoretic quantities from data, and now we will study how and how well it can be done. Several decades of research later, and almost as many different estimators as there were applications, it may come as a surprise that many basic questions remain unanswered (although recent progress has been made, especially in the continuous case). To understand why, recall that mutual information $\\II(X;Y)$ is defined for $X$ and $Y$ of any dimensions.","keywords":[],"articleBody":"The previous posts established why we would want to estimate information-theoretic quantities from data, and now we will study how and how well it can be done. Several decades of research later, and almost as many different estimators as there were applications, it may come as a surprise that many basic questions remain unanswered (although recent progress has been made, especially in the continuous case). To understand why, recall that mutual information $\\II(X;Y)$ is defined for $X$ and $Y$ of any dimensions. For example, in many applications in neuroscience, $X$ may be the activation of hundreds or thousands or neurons, and $Y$ a single-dimensional stimulus or response. Estimating $\\II(X;Y)$ from sampled data in this setting is a very different problem than estimating it between two single-dimensional signal! In this section we focus on the use of (conditional) mutual information for constraint-based algorithms, where $X$ and $Y$ are single-dimensional variables and $Z$ may be fewdimensional, and for which we also need some significance assessment.\nDiscrete estimators Estimating $\\II(X;Y)$ on discrete data is the most straightforward case. We can simply estimate the probability mass functions $\\hat{p}(x)$, $\\hat{p}(y)$ and $\\hat{p}(x,y)$ from independently and identically distributed (i.i.d) data by counting how many times we observe each level. Using the chain rule, we actually only need an entropy estimator $\\hat{H}$ to get an estimation $\\hat{\\II}$. Using the observed frequencies $\\hat{p}_i$ with $i \\in [1,m]$, we get what is called the \"plug-in\" or \"naive\" estimator : $$\\hat{H}_\\text{Naive} = -\\sum_{i=1}^{m} p_i \\log p_i$$ Note that it is also the maximum likelihood estimator from the observed data. It is however suboptimal, it has long been known that it is negatively biased everywhere (Citation: Paninski, 2003Paninski, L. (2003). Estimation of entropy and mutual information. Neural computation, 15(6). 1191–1253. ) . The short explanation is that while $\\hat{p}_i$ is estimated with symmetric variance on either side of the true frequency $p_i$, the $\\log$ transformation amplifies more variance towards $0$ than towards $1$, and the contribution of each $\\hat{p}_i$ ends up being underestimated on average. To correct this shortcoming, a common fix is to add the Miller-Madow correction (Citation: Miller, 1955Miller, G. (1955). Note on the bias of information estimates. Information theory in psychology. ) : $$\\hat{H}_\\text{MM} = \\hat{H}_\\text{Naive} + \\frac{\\hat{m}-1}{2N}$$ with $\\hat{m}$ the number of categories with nonzero probability as estimated from the $\\hat{p}_i$. This correction effectively reduces the bias of $\\hat{H}_\\text{Naive}$ without adding any complexity, and is preferred in many contexts.\nAnother popular idea is to use a jacknife resampling procedure, which trades lower bias for a slightly higher complexity (Citation: Efron \u0026 Stein, 1981Efron, B. \u0026 Stein, C. (1981). The Jackknife Estimate of Variance. The Annals of Statistics, 9(3). 586–596. https://doi.org/10.1214/aos/1176345462 ) : $$\\hat{H}_\\text{JK} = N\\hat{H}_\\text{Naive} - \\frac{N-1}{N} \\sum_{j=1}^N\\hat{H}_{\\text{Naive}-j}$$ where $\\hat{H}_{\\text{Naive}-j}$ is the naive estimator without the $j$th sample.\nFinally, another way to correct the negative bias of the naive estimator is to act directly on the estimates $\\hat{p}_i$ instead of applying a correction a posteriori. The Schurmann-Grassberger estimator does exactly that, by applying prior Bayesian belief that the samples follow a Dirichlet distribution (the multivariate generalization of the Beta distribution) (Citation: Schürmann \u0026 Grassberger, 1996Schürmann, T. \u0026 Grassberger, P. (1996). Entropy estimation of symbol sequences. Chaos: An Interdisciplinary Journal of Nonlinear Science, 6(3). 414–427. https://doi.org/10.1063/1.166191 ) . It essentially \"tricks\" the estimator to think that more counts have been observed to compensate for the negative bias of the naive estimator, such that $mN$ becomes the a priori sample size. The result is a less biased estimator, but the choice of the prior end up dominating the estimation (Citation: Nemenman, Bialek \u0026 al., 2004Nemenman, I., Bialek, W. \u0026 Van Steveninck, R. (2004). Entropy and information in neural spike trains: Progress on the sampling problem. Physical Review E, 69(5). 056111. ) .\nAll of these improved estimators have been designed for the setting where $I(X;Y) » 0$, as opposed to constraint-based discovery where we are more interested in the independence regime. Importantly, they all share another kind of bias : they overestimate dependencies on finite data. Without knowing the true distributions, any of these estimators will be positive $\\hat\\II(X;Y)  0$ (resp. $\\hat\\II(X;Y|Z)0$) almost surely, even when $X \\indep Y$ (resp. $X \\indep Y | Z$). Several suggestions have been made, mostly based on fixed thresholds as a function of the sample size. A more inspired approach is to also take into account the distributions of the variables : indeed, we do not expect the same bias from sampling simple binary variables with balanced levels, versus more complicated variables with many unbalanced categories.\nThis is the route taken by MIIC (Citation: Cabeli, Verny \u0026 al., 2020Cabeli, V., Verny, L., Sella, N., Uguzzoni, G., Verny, M. \u0026 Isambert, H. (2020). Learning clinical networks from medical recordsbased on information estimates in mixed-type data. PLoS Computational Biology. ) , which corrects the naive estimate by subtracting a complexity cost that depends on $X$, $Y$ and $Z$. It frames each test of independence in the context of graph reconstruction, favoring simpler models with fewer edges. Namely, it introduces a complexity cost for the edge $X-Y$ potentially separated by separating set $U_i$, noted $k_{X;Y|{U_i}}$. Then, the condition $\\II(X;Y|U_i) (Citation: Affeldt, Verny \u0026 al., 2016Affeldt, S., Verny, L. \u0026 Isambert, H. (2016). 3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics. BioMed Central Ltd. Citation: Affeldt, Verny \u0026 al., 2016Affeldt, S., Verny, L. \u0026 Isambert, H. (2016). 3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics. BioMed Central Ltd. ) . Such a score will be discussed in a future post introducing the new MDL-optimal (Minimum Description Length) discretization scheme.\nContinuous estimators Compared to the discrete case, estimating $\\hat\\II$ on continuous data is notoriously difficult. Historically, one of the most common way to deal with continuous data was to discretize them into bins, the same way we construct histograms. We note $[X]$ and $[Y]$ the quantized version of $X$ and $Y$ on finite data. This approach is conceptually straightforward, we can simply compute $\\hat\\II([X];[Y])$ with any discrete estimator and take it as an approximation of $\\II(X;Y)$.\nPerhaps because we are used to seeing histograms and picking the correct number of bins visually, surprisingly many applications perform this kind of naive discretization without much justification. In practice however, both the number of bins and their locations dominate the estimation. Even for large $N$, $\\hat\\II([X],[Y])$ converges on some value that depends on the discretization parameters rather than $\\II(X;Y)$, namely the number of bins $|\\Delta_X|$ and $|\\Delta_Y|$, as well as their size (Citation: Vejmelka \u0026 Paluš, 2008Vejmelka, M. \u0026 Paluš, M. (2008). Inferring the directionality of coupling with conditional mutual information. Physical Review E, 77(2). 026214. ) . This bias was already documented as early as 1989, but was considered manageable if one chose a \"reasonable number of cells\" (Citation: Moddemeijer, 1989Moddemeijer, R. (1989). On estimation of entropy and mutual information of continuous distributions. Signal processing, 16(3). 233–248. ) . But the question of what is \"reasonable\" is more complicated than it appears. For example, Ross et al. note that there is no optimal value of $|\\Delta|$ that works for all distributions : $N^{0.5}$ works well for the square wave distribution but $N^{0.7}$ is better for a Gaussian distribution (Citation: Ross, 2014Ross, B. (2014). Mutual Information between Discrete and Continuous Data Sets. PLOS ONE, 9(2). e87357. https://doi.org/10.1371/journal.pone.0087357 Citation: Ross, 2014Ross, B. (2014). Mutual Information between Discrete and Continuous Data Sets. PLOS ONE, 9(2). e87357. https://doi.org/10.1371/journal.pone.0087357 ) . Similarly, Seok et al. show that even for Gaussian bivariate distributions with the same marginals, the \"correct\" number of bins that gives the best approximation of $\\II(X;Y)$ varies depending on the strength of the correlation $\\rho$ (Citation: Seok \u0026 Kang, 2015Seok, J. \u0026 Kang, Y. (2015). Mutual information between discrete variables with many categories using recursive adaptive partitioning. Scientific Reports, 5. 10981. ) . Note that the same applies for any estimator that takes a number of bins as parameter, regardless of how clever the discretization scheme is (for example, using B-splines (Citation: Daub, Steuer \u0026 al., 2004Daub, C., Steuer, R., Selbig, J. \u0026 Kloska, S. (2004). Estimating mutual information using B-spline functions–an improved similarity measure for analysing gene expression data. BMC bioinformatics, 5(1). 118. ) ). Instead, it is essential to deduce the number of bins from the observations (Citation: Darbellay \u0026 Vajda, 1999Darbellay, G. \u0026 Vajda, I. (1999). Estimation of the information by an adaptive partitioning of the observation space. IEEE Transactions on Information Theory, 45(4). 1315–1321. ; Citation: Wang, Kulkarni \u0026 al., 2005Wang, Q., Kulkarni, S. \u0026 Verdú, S. (2005). Divergence estimation of continuous distributions based on data-dependent partitions. IEEE Transactions on Information Theory, 51(9). 3064–3074. ) . Darbellay et al’s recursive partitioning scheme (Citation: Darbellay \u0026 Vajda, 1999Darbellay, G. \u0026 Vajda, I. (1999). Estimation of the information by an adaptive partitioning of the observation space. IEEE Transactions on Information Theory, 45(4). 1315–1321. ) is conceptually one of the closest approach to the novel estimator introduced in (Citation: Cabeli, Verny \u0026 al., 2020Cabeli, V., Verny, L., Sella, N., Uguzzoni, G., Verny, M. \u0026 Isambert, H. (2020). Learning clinical networks from medical recordsbased on information estimates in mixed-type data. PLoS Computational Biology. ) , but it is limited in the placement of the bins.\nAnother common approach is to compute the mutual information using analytical formulas, having estimated $p(X)$, $p(Y)$ and $p(X,Y)$. It is only feasible for few applications with strong a priori on the data distribution, and even if we know the distributions the data is sampled from, only few analytical formulas for the information are known (Citation: Darbellay \u0026 Vajda, 2000Darbellay, G. \u0026 Vajda, I. (2000). Entropy expressions for multivariate continuous distributions. IEEE Transactions on Information Theory, 46(2). 709–712. https://doi.org/10.1109/18.825848 ) . Instead of being imposed some priors, the density functions can also be estimated via the usual methods using e.g. kernel functions (Citation: Moon, Rajagopalan \u0026 al., 1995Moon, Y., Rajagopalan, B. \u0026 Lall, U. (1995). Estimation of mutual information using kernel density estimators. Physical Review E, 52(3). 2318–2321. https://doi.org/10.1103/PhysRevE.52.2318 ) . But, related to the problem of choosing the number of bins, one has to choose the type of kernel and its width, which has shown similar bias (Citation: Moddemeijer, 1989Moddemeijer, R. (1989). On estimation of entropy and mutual information of continuous distributions. Signal processing, 16(3). 233–248. ) . It is also exponentially more complex as the support’s dimensions increase, limiting its use for conditional independence testing even with few variable $Z$s in the conditioning set.\nUndoubtedly, the best results on continuous data are obtained with the \"KSG\" estimator from Kraskov, Stögbaueur and Grassberger (Citation: Kraskov, Stögbauer \u0026 al., 2004Kraskov, A., Stögbauer, H. \u0026 Grassberger, P. (2004). Estimating mutual information. Physical review E, 69(6). 066138. ) . We will also refer to this approach as the $k$-nn approach, as it employs a $k$-nearest neighbor estimation of the local entropy. It is based on earlier work by Kozachenko and Leonenko, who first derived an estimate of the entropy based on nearest-neighbor distances (Citation: Kozachenko \u0026 Leonenko, 1987Kozachenko, L. \u0026 Leonenko, N. (1987). Sample estimate of the entropy of a random vector. Problemy Peredachi Informatsii, 23(2). 9–16. ) : $$\\hat{H}_\\text{KL}(X) = \\frac{1}{N}\\sum_{i=1}^N\\log \\left( \\frac{Nc_{d,p}\\rho_{k,i}}{k} \\right) + \\log(k) - \\psi(k)$$ with $\\rho_{k,i}$ the distance from the $j$th sample to its $k$th nearest neighbor, $c_d$ the volume of the unit ball in $d$ dimensions and $\\psi(.)$ the digamma function. The original authors introduced this formula for a fixed $k=1$, proving its consistency as $N$ increases, and (Citation: Singh, Misra \u0026 al., 2003Singh, H., Misra, N., Hnizdo, V., Fedorowicz, A. \u0026 Demchuk, E. (2003). Nearest neighbor estimates of entropy. American journal of mathematical and management sciences, 23(3-4). 301–321. ) proved it later for all $k$. Additionally, Jiao et al. derived an uniform upper bound on its performance proving its near optimality (Citation: Jiao, Gao \u0026 al., 2018Jiao, J., Gao, W. \u0026 Han, Y. (2018). The Nearest Neighbor Information Estimator is Adaptively Near Minimax Rate-Optimal. arXiv:1711.08824 [cs, math, stat]. Retrieved from http://arxiv.org/abs/1711.08824 ) , a first for such estimators.\nGiven this strong estimator, a natural way to get to $\\hat\\II$ is to use the chain rule : $$\\hat\\II_\\text{3KL} = \\hat{H}_\\text{KL}(X) + \\hat{H}_\\text{KL}(Y) - \\hat{H}_\\text{KL}(X,Y)$$ This estimator is also consistent and performs fairly well in practice, but was shown to be uniformly inferior to the KSG estimator in many empirical settings. The KSG estimator is defined as : $$\\hat\\II_\\text{KSG}(X;Y) = \\psi(k) + \\psi(N) - \\left$$ with $n_{x,i}$ the number of points within an $\\rho_{k,i}$ distance on the $X$ dimension, and $\\left$ the average taken on all samples. The $\\rho_{k_i}$ distance is usually taken with $\\ell_\\infty$ or $\\ell^2$ norm (see next figure). Since its introduction, no other estimator seems to be as performant in most settings and it has become the go-to solution to estimate $\\hat\\II$ on continuous data. The particularity behind the KSG estimator is to compare $H(X)$, $H(Y)$ and $H(X,Y)$ locally to estimate the mutual information directly, instead of having to estimate each of the three terms. Recently, Gao et al. revealed why this choice leads to uniformly better results than the $\\hat\\II_\\text{3KL}$ estimator. They have shown that the better performance stems from a correlation boosting effect, the bias of the joint entropy is positively correlated to the biases of the marginal entropies, which partly cancel each other when subtracting via the chain rule (Citation: Gao, Oh \u0026 al., 2016Gao, W., Oh, S. \u0026 Viswanath, P. (2016). Demystifying Fixed k-Nearest Neighbor Information Estimators. arXiv:1604.03006 [cs, math, stat]. Retrieved from http://arxiv.org/abs/1604.03006 ) . It makes no assumption on either the marginal or joint distributions, and seems to be equitable to all relationships (Citation: Kinney \u0026 Atwal, 2014Kinney, J. \u0026 Atwal, G. (2014). Equitability, mutual information, and the maximal information coefficient. Proceedings of the National Academy of Sciences, 111(9). 3354–3359. https://doi.org/10.1073/pnas.1309933111 ) . Somewhat surprisingly, rank-ordering the variables still gives correct estimates (as it should), although it is not clear whether it should be preferred or not.\n Choice of the $\\rho_{k,i}$ distance with $\\ell_\\infty$ norm (left) or $\\ell^2$ norm (righ) for the KSG estimator. Figure taken from Gao et al. 2016   It was conveniently adapted to the conditional case, also using a direct formula instead of the chain rule (Citation: Vejmelka \u0026 Paluš, 2008Vejmelka, M. \u0026 Paluš, M. (2008). Inferring the directionality of coupling with conditional mutual information. Physical Review E, 77(2). 026214. ; Citation: Tsimpiris, Vlachos \u0026 al., 2012Tsimpiris, A., Vlachos, I. \u0026 Kugiumtzis, D. (2012). Nearest neighbor estimate of conditional mutual information in feature selection. Expert Systems with Applications, 39(16). 12697–12708. ) : $$\\hat\\II_\\text{KSG}(X;Y|Z) = \\psi(k) + \\left$$\nStill, we note a few disadvantages that discourage its use for general constraint-based algorithms. First, the variance and bias of the estimation are tied to the choice of the parameter $k$ (Citation: Pérez-Cruz, 2009Pérez-Cruz, F. (2009). Estimation of Information Theoretic Measures for Continuous Random Variables. Curran Associates, Inc.. Retrieved from https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html ) . The original authors themselves suggest a low $k$ ($2-4$) for good a estimation $\\hat\\II_\\text{KSG}$, and much larger for independence testing (up to $\\simeq N/2$). In general, the trade-off is high variance and low bias for small values of $k$, and less variance but increased bias for large $k$ (Citation: Kinney \u0026 Atwal, 2014Kinney, J. \u0026 Atwal, G. (2014). Equitability, mutual information, and the maximal information coefficient. Proceedings of the National Academy of Sciences, 111(9). 3354–3359. https://doi.org/10.1073/pnas.1309933111 ; Citation: Holmes \u0026 Nemenman, 2019Holmes, C. \u0026 Nemenman, I. (2019). Estimation of mutual information for real-valued data with error bars and controlled bias. bioRxiv. 589929. https://doi.org/10.1101/589929 ) . Secondly, as is the case with discrete estimators, the equivalence $\\hat\\II(X;Y) = 0 \\Leftrightarrow X \\indep Y$ is not respected, as variance still exists at independence. Crucially, there are currently no results on the distribution of the estimator, either exact nor asymptotically, and there is no easy way to test for independence (Citation: Paninski, 2003Paninski, L. (2003). Estimation of entropy and mutual information. Neural computation, 15(6). 1191–1253. ; Citation: Pérez-Cruz, 2009Pérez-Cruz, F. (2009). Estimation of Information Theoretic Measures for Continuous Random Variables. Curran Associates, Inc.. Retrieved from https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html ) . Runge proposed to test for conditional independence using a local permutations scheme, which reliably estimates the null distribution but requires significantly more computation (Citation: Runge, 2018Runge, J. (2018). Conditional independence testing based on a nearest-neighbor estimator of conditional mutual information. Retrieved from http://proceedings.mlr.press/v84/runge18a.html ) . Berrett and Samworth improved slightly on this idea, introducing an independence test based on either simulations when marginal distributions are known, or resampling when they are not (Citation: Berrett \u0026 Samworth, 2019Berrett, T. \u0026 Samworth, R. (2019). Nonparametric independence testing via mutual information. Biometrika, 106(3). 547–566. https://doi.org/10.1093/biomet/asz024 ) .\nMany other estimators exist, involving ensemble methods (Citation: Moon, Sricharan \u0026 al., 2017Moon, K., Sricharan, K. \u0026 Hero, A. (2017). Ensemble estimation of mutual information. https://doi.org/10.1109/ISIT.2017.8007086 ) , copula transformations (Citation: Ince, Giordano \u0026 al., 2017Ince, R., Giordano, B., Kayser, C., Rousselet, G., Gross, J. \u0026 Schyns, P. (2017). A statistical framework for neuroimaging data analysis based on mutual information estimated via a gaussian copula. Human brain mapping, 38(3). 1541–1573. ) , dependence graphs (Citation: Noshad, Zeng \u0026 al., 2018Noshad, M., Zeng, Y. \u0026 Hero III, A. (2018). Scalable Mutual Information Estimation using Dependence Graphs. arXiv:1801.09125 [cs, math, stat]. Retrieved from http://arxiv.org/abs/1801.09125 ) , and even deep neural networks (Citation: Belghazi, Rajeswar \u0026 al., 2018Belghazi, I., Rajeswar, S., Baratin, A., Hjelm, R. \u0026 Courville, A. (2018). MINE: Mutual information neural estimation. arXiv preprint arXiv:1801.04062. ) . Overall, the KSG estimator has shown the best performance in the settings that interest us, and is the best understood. It has even been adapted to the mixed case and mixture variables, as we shall see now.\nMixed estimators Compared to the discrete and the continuous case, relatively little work has been done on estimating mutual information in the mixed case, where $X$ is discrete and $Y$ is continuous, and even less in the case of mixture variables.\nRoss et al. extended the KSG estimator to the mixed case, by counting the number of nearest neighbors in the continuous space $Y$ on the subset of samples that share the same discrete value of $X$. More specifically, for each sample $i$, the method first finds the distance to the $k$th nearest neighbor which also share the same discrete value, and counts the number of neighbors within this distance in the full data, noted $m$. This estimator is given by : $$\\hat\\II_\\text{Ross}(X;Y) = \\psi(N) + \\psi(k) - \\left$$ with $N_X$ the total number of data points that share the same discrete value on $X$.\nIt was then expanded by Gao et al. to mixture distributions by taking the average of the Radon-Nikodym derivative over all samples (Citation: Gao, Kannan \u0026 al., 2017Gao, W., Kannan, S., Oh, S. \u0026 Viswanath, P. (2017). Estimating Mutual Information for Discrete-Continuous Mixtures. arXiv:1709.06212 [cs, math]. Retrieved from http://arxiv.org/abs/1709.06212 ) . The way to estimate this derivative depends on each sample : plug-in estimator when the point is discrete (i.e. more than $k$ point share the same value, so $\\rho_{i,k}=0$), and KSG estimator when there is a locally continuous joint density. The intuition behind this procedure is that the Radon-Nikodym derivative is well defined for all cases, and that it recovers either the plug-in estimator, the KSG estimator, or Ross’s estimator depending on the local subspace. By then taking the average of all the derivatives, this gives the value $\\hat\\II(X;Y)$ for any distributions $X$ and $Y$. It was proven to be consistent, and has shown better results than binning procedures or noisy KSG on mixture variables. It shares however the same lack of significance test as the other $k$-nn estimators, which makes it less adapted to constraint-based algorithms.\nMarx et al. also proposed a mixed estimator based on the Radon-Nikodym derivative and adaptive histogram models for the continuous parts of the mixture variables (Citation: Marx, Yang \u0026 al., 2021Marx, A., Yang, L. \u0026 Leeuwen, M. (2021). Estimating Conditional Mutual Information for Discrete-Continuous Mixtures using Multi-Dimensional Adaptive Histograms. SIAM. ) . Just as our approach introduced in (Citation: Cabeli, Verny \u0026 al., 2020Cabeli, V., Verny, L., Sella, N., Uguzzoni, G., Verny, M. \u0026 Isambert, H. (2020). Learning clinical networks from medical recordsbased on information estimates in mixed-type data. PLoS Computational Biology. ) , they devised an heuristic to find the optimal discretization according to the Minimum Description Length (MDL) principle (Citation: Rissanen, 1978Rissanen, J. (1978). Modeling by shortest data description. Automatica, 14(5). 465–471. ) . It also comes with easy independence testing with Normalised Maximum Likelihood (NML) correction on discrete data, as introduced in (Citation: Affeldt, Verny \u0026 al., 2016Affeldt, S., Verny, L. \u0026 Isambert, H. (2016). 3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics. BioMed Central Ltd. Citation: Affeldt, Verny \u0026 al., 2016Affeldt, S., Verny, L. \u0026 Isambert, H. (2016). 3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics. BioMed Central Ltd. ) using the factorized NML criteria (Citation: Roos, Silander \u0026 al., 2008Roos, T., Silander, T., Kontkanen, P. \u0026 Myllymaki, P. (2008). Bayesian network structure learning using factorized NML universal models. IEEE. ) (which was later redefined by Marx et al., proving asymptotic behavior and consistency (Citation: Marx \u0026 Vreeken, 2018Marx, A. \u0026 Vreeken, J. (2018). Stochastic Complexity for Testing Conditional Independence on Discrete Data.  ) ). It is well adapted to constraint-based algorithms, however it considers mixture variable in a slightly different way from Gao et al (and (Citation: Cabeli, Verny \u0026 al., 2020Cabeli, V., Verny, L., Sella, N., Uguzzoni, G., Verny, M. \u0026 Isambert, H. (2020). Learning clinical networks from medical recordsbased on information estimates in mixed-type data. PLoS Computational Biology. ) ).\nThis difference is best explained through an example. Let $(X,Y)$ be a mixture of one continuous and one discrete distribution. The continuous distribution is a bivariate Gaussian, with mean $\\mu = 0$, marginal variance $\\sigma=1$ and correlation $\\rho$. The discrete distribution is two binary variables, with probabilities $p(X=1,Y=1) = p(X=-1,Y=-1) = \\beta$ and $p(X=1,Y=-1) = p(X=-1,Y=1) = \\beta$. These two distributions are then mixed with probability $p_{con}$ and $p_{dis}$ respectively. The ground truth as derived by Gao et al. is given by :\n$$\\begin{aligned} \\label{eq:mixture} \\begin{split} \\II(X;Y) = \u0026 \\frac{-p_{con}}{2} \\times \\log(1 - \\rho^2) + \\frac{\\beta}{2} \\times \\log\\frac{\\beta/2}{p_{dis}^2} + \\frac{(1 - \\beta)}{2} \\times \\log\\frac{(1-\\beta)/2}{p_{dis}^2} \\\\ \u0026 - p_{con}\\times \\log p_{con} - p_{dis}\\times \\log p_{dis} \\end{split}\\end{aligned}$$\nMarx et al. used a different ground truth for this distribution, without the last two terms of the sum, $- p_{con}\\times \\log p_{con} - p_{dis}\\times \\log p_{dis}$. In their framework, $X \\indep Y$ and $\\II(X;Y)=0$ if and only if $\\rho=0$ and $\\beta=0.5$. It is justified if one considers that the continuous and discrete parts do not share the same space, acting more like separate dimensions of the joint distribution. On the other hand, if we consider that all parts of $X$ and $Y$ share the same euclidean space, some information is \"created\" from the structure of the joint distribution, given by $- p_{con}\\times \\log p_{con} - p_{dis}\\times \\log p_{dis}$ (which equals to $\\log2$ when $p_{con} = p_{dis} = 0.5$). Indeed, even when $\\rho=0$ and $\\beta=0.5$, the distribution $p(x,y)$ is far from $p(x)p(y)$ due to the constraints imposed by sharing the same space:\n Discrete and continuous parts are kept separated, as in different dimensions. The mutual information is $\\log 2$, as measured by our optimal discretization scheme    All data points are on the same euclidean space and the null hypothesis is $p(x,y)=p(x)p(y)$, and $\\II(X;Y)=0$   The second view is closer to the master definition of mutual information which implies that we can use any partitioning to discretize $X$ and $Y$, potentially combining discrete and continuous parts in a single bin. This also corresponds to the approach taken to develop our own estimator and significance test based on optimal binning of $X,Y$, introduced in a future post.\n","wordCount":"3893","inLanguage":"en","datePublished":"2021-11-24T00:00:00Z","dateModified":"2021-11-24T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://vcabe.li/posts/estimating_mi/"},"publisher":{"@type":"Organization","name":"VCabeli","logo":{"@type":"ImageObject","url":"https://vcabe.li/favicon.ico"}}}</script>
+</head>
+<body id=top>
+<script>window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
+<header class=header>
+<nav class=nav>
+<div class=logo>
+<a href=https://vcabe.li accesskey=h title="VCabeli (Alt + H)">VCabeli</a>
+<span class=logo-switches>
+</span>
+</div>
+<ul id=menu>
+</ul>
+</nav>
+</header>
+<main class=main>
+<article class=post-single>
+<header class=post-header>
+<h1 class=post-title>
+Estimating mutual information on finite samples
+</h1>
+<div class=post-meta><span title="2021-11-24 00:00:00 +0000 UTC">November 24, 2021</span>
+</div>
+</header>
+<div class=post-content><p>The previous posts established <em>why</em> we would want to estimate
+information-theoretic quantities from data, and now we will study <em>how</em>
+and <em>how well</em> it can be done. Several decades of research later, and
+almost as many different estimators as there were applications, it may
+come as a surprise that many basic questions remain unanswered (although
+recent progress has been made, especially in the continuous case). To
+understand why, recall that mutual information $\II(X;Y)$ is defined for
+$X$ and $Y$ of any dimensions. For example, in many applications in neuroscience,
+$X$ may be the activation of hundreds or thousands or neurons, and $Y$ a
+single-dimensional stimulus or response. Estimating $\II(X;Y)$ from
+sampled data in this setting is a very different problem than estimating
+it between two single-dimensional signal! In this section we focus on
+the use of (conditional) mutual information for constraint-based
+algorithms, where $X$ and $Y$ are single-dimensional variables and $Z$
+may be <em>fewdimensional</em>, and for which we also need some significance assessment.</p>
+<h3 id=discrete-estimators>Discrete estimators<a hidden class=anchor aria-hidden=true href=#discrete-estimators>#</a></h3>
+<p>Estimating $\II(X;Y)$ on discrete data is the most straightforward case.
+We can simply estimate the probability mass functions $\hat{p}(x)$,
+$\hat{p}(y)$ and $\hat{p}(x,y)$ from independently and identically
+distributed (i.i.d) data by counting how many times we observe each
+level. Using the chain rule, we actually only need an entropy
+estimator $\hat{H}$ to get an estimation $\hat{\II}$. Using the observed
+frequencies $\hat{p}_i$ with $i \in [1,m]$, we get what is called the
+"plug-in" or "naive" estimator :
+$$\hat{H}_\text{Naive} = -\sum_{i=1}^{m} p_i \log p_i$$ Note that it is
+also the maximum likelihood estimator from the observed data. It is
+however suboptimal, it has long been known that it is negatively biased
+everywhere
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#paninski_estimation_2003><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Liam"><span itemprop=familyName>Paninski</span></span>, <span itemprop=datePublished>2003</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Paninski</span>, 
+<meta itemprop=givenName content="Liam">
+L.</span>
+ 
+(<span itemprop=datePublished>2003</span>).
+ <span itemprop=name>Estimation of entropy and mutual information</span>.<i>
+<span itemprop=about>Neural computation</span>, 15(6)</i>. <span itemprop=pagination>1191–1253</span>.</span>
+</span></span>)</span>
+. The short explanation is that
+while $\hat{p}_i$ is estimated with symmetric variance on either side of
+the true frequency $p_i$, the $\log$ transformation amplifies more
+variance towards $0$ than towards $1$, and the contribution of each
+$\hat{p}_i$ ends up being underestimated on average. To correct this
+shortcoming, a common fix is to add the Miller-Madow correction
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#miller_note_1955><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="G."><span itemprop=familyName>Miller</span></span>, <span itemprop=datePublished>1955</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Miller</span>, 
+<meta itemprop=givenName content="G.">
+G.</span>
+ 
+(<span itemprop=datePublished>1955</span>).
+ <span itemprop=name>Note on the bias of information estimates</span>.<i>
+<span itemprop=about>Information theory in psychology</span></i>.</span>
+</span></span>)</span>
+:
+$$\hat{H}_\text{MM} = \hat{H}_\text{Naive} + \frac{\hat{m}-1}{2N}$$ with
+$\hat{m}$ the number of categories with nonzero probability as estimated
+from the $\hat{p}_i$. This correction effectively reduces the bias of
+$\hat{H}_\text{Naive}$ without adding any complexity, and is preferred
+in many contexts.</p>
+<p>Another popular idea is to use a jacknife resampling procedure, which
+trades lower bias for a slightly higher complexity
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#efron_jackknife_1981><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="B."><span itemprop=familyName>Efron</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="C."><span itemprop=familyName>Stein</span></span>, <span itemprop=datePublished>1981</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Efron</span>, 
+<meta itemprop=givenName content="B.">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Stein</span>, 
+<meta itemprop=givenName content="C.">
+C.</span>
+ 
+(<span itemprop=datePublished>1981</span>).
+ <span itemprop=name>The Jackknife Estimate of Variance</span>.<i>
+<span itemprop=about>The Annals of Statistics</span>, 9(3)</i>. <span itemprop=pagination>586–596</span>.
+<a href=https://doi.org/10.1214/aos/1176345462 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1214/aos/1176345462</a></span>
+</span></span>)</span>
+:
+$$\hat{H}_\text{JK} = N\hat{H}_\text{Naive} - \frac{N-1}{N} \sum_{j=1}^N\hat{H}_{\text{Naive}-j}$$
+where $\hat{H}_{\text{Naive}-j}$ is the naive estimator without the
+$j$th sample.</p>
+<p>Finally, another way to correct the negative bias of the naive estimator
+is to act directly on the estimates $\hat{p}_i$ instead of applying a
+correction a posteriori. The Schurmann-Grassberger estimator does
+exactly that, by applying prior Bayesian belief that the samples follow
+a Dirichlet distribution (the multivariate generalization of the Beta
+distribution)
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#schurmann_entropy_1996><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Thomas"><span itemprop=familyName>Schürmann</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Peter"><span itemprop=familyName>Grassberger</span></span>, <span itemprop=datePublished>1996</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Schürmann</span>, 
+<meta itemprop=givenName content="Thomas">
+T.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Grassberger</span>, 
+<meta itemprop=givenName content="Peter">
+P.</span>
+ 
+(<span itemprop=datePublished>1996</span>).
+ <span itemprop=name>Entropy estimation of symbol sequences</span>.<i>
+<span itemprop=about>Chaos: An Interdisciplinary Journal of Nonlinear Science</span>, 6(3)</i>. <span itemprop=pagination>414–427</span>.
+<a href=https://doi.org/10.1063/1.166191 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1063/1.166191</a></span>
+</span></span>)</span>
+. It essentially "tricks" the
+estimator to think that more counts have been observed to compensate for
+the negative bias of the naive estimator, such that $mN$ becomes the a
+priori sample size. The result is a less biased estimator, but the
+choice of the prior end up dominating the estimation
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#nemenman_entropy_2004><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ilya"><span itemprop=familyName>Nemenman</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="William"><span itemprop=familyName>Bialek</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2004</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Nemenman</span>, 
+<meta itemprop=givenName content="Ilya">
+I.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Bialek</span>, 
+<meta itemprop=givenName content="William">
+W.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Van Steveninck</span>, 
+<meta itemprop=givenName content="Rob De Ruyter">
+R.</span>
+ 
+(<span itemprop=datePublished>2004</span>).
+ <span itemprop=name>Entropy and information in neural spike trains: Progress on the sampling problem</span>.<i>
+<span itemprop=about>Physical Review E</span>, 69(5)</i>. <span itemprop=pagination>056111</span>.</span>
+</span></span>)</span>
+.</p>
+<p>All of these improved estimators have been designed for the setting
+where $I(X;Y) &#187; 0$, as opposed to constraint-based discovery where we
+are more interested in the independence regime. Importantly, they all
+share another kind of bias : they overestimate dependencies on finite
+data. Without knowing the true distributions, any of these estimators
+will be positive $\hat\II(X;Y) > 0$ (resp. $\hat\II(X;Y|Z)>0$) almost
+surely, even when $X \indep Y$ (resp. $X \indep Y | Z$). Several
+suggestions have been made, mostly based on fixed thresholds as a
+function of the sample size. A more inspired approach is to also take
+into account the distributions of the variables : indeed, we do not
+expect the same bias from sampling simple binary variables with balanced
+levels, versus more complicated variables with many unbalanced
+categories.</p>
+<p>This is the route taken by MIIC
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#cabeli_learning_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Vincent"><span itemprop=familyName>Cabeli</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cabeli</span>, 
+<meta itemprop=givenName content="Vincent">
+V.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Sella</span>, 
+<meta itemprop=givenName content="Nadir">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Uguzzoni</span>, 
+<meta itemprop=givenName content="Guido">
+G.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Marc">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>Learning clinical networks from medical recordsbased on information estimates in mixed-type data</span>.<i>
+<span itemprop=about>PLoS Computational Biology</span></i>.</span>
+</span></span>)</span>
+, which corrects the naive estimate by
+subtracting a complexity cost that depends on $X$, $Y$ and $Z$. It
+frames each test of independence in the context of graph reconstruction,
+favoring simpler models with fewer edges. Namely, it introduces a
+complexity cost for the edge $X-Y$ potentially separated by separating
+set $U_i$, noted $k_{X;Y|{U_i}}$. Then, the condition
+$\II(X;Y|U_i) &lt; k_{X;Y|{U_i}}(N)/N$ to remove the edge $X-Y$ favors
+the simpler model compatible with the independencies in the sense of the
+model complexity, given the observed data. This replaces the strict
+equivalence $\II(X;Y|U_i) = 0 \Leftrightarrow X \indep Y | U_i$ which is
+only valid in the limit $N \rightarrow \infty$. The challenge now is to
+choose the form of $k_{X;Y|{U_i}(N)}$. A common complexity cost used
+in model selection would be the Bayesian Information Criterion :
+$$k_{X;Y|{U_i}}^\text{BIC}(N) = {1\over{2}}(r_X-1)(r_Y-1) \prod_i r_{U_i} \log(N)$$
+with $r_X$, $r_Y$, $r_{U_i}$ the number of categories of each variable
+($U_i$ being a joint variable). This complexity cost can be improved by
+also taking into account the distributions of the variables, not only
+their number of levels
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#affeldt_3off2_2016><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Séverine"><span itemprop=familyName>Affeldt</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2016</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Affeldt</span>, 
+<meta itemprop=givenName content="Séverine">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2016</span>).
+ <span itemprop=name>
+<i>3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>BioMed Central Ltd</span></span>.</span>
+</span></span><span class=hugo-cite-group>
+<a href=#affeldt_3off2_2016><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Séverine"><span itemprop=familyName>Affeldt</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2016</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Affeldt</span>, 
+<meta itemprop=givenName content="Séverine">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2016</span>).
+ <span itemprop=name>
+<i>3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>BioMed Central Ltd</span></span>.</span>
+</span></span>)</span>
+. Such a score will be
+discussed in a future post introducing the new MDL-optimal (Minimum Description Length)
+discretization scheme.</p>
+<h3 id=sec:continuous_estimators>Continuous estimators<a hidden class=anchor aria-hidden=true href=#sec:continuous_estimators>#</a></h3>
+<p>Compared to the discrete case, estimating $\hat\II$ on continuous data
+is notoriously difficult. Historically, one of the most common way to
+deal with continuous data was to discretize them into bins, the same way
+we construct histograms. We note $[X]$ and $[Y]$ the quantized version
+of $X$ and $Y$ on finite data. This approach is conceptually
+straightforward, we can simply compute $\hat\II([X];[Y])$ with any
+discrete estimator and take it as an approximation of $\II(X;Y)$.</p>
+<p>Perhaps because we are used to seeing histograms and picking the correct
+number of bins visually, surprisingly many applications perform this
+kind of naive discretization without much justification. In practice
+however, both the number of bins and their locations dominate the
+estimation. Even for large $N$, $\hat\II([X],[Y])$ converges on some
+value that depends on the discretization parameters rather than
+$\II(X;Y)$, namely the number of bins $|\Delta_X|$ and $|\Delta_Y|$, as
+well as their size
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#vejmelka_inferring_2008><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Martin"><span itemprop=familyName>Vejmelka</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Milan"><span itemprop=familyName>Paluš</span></span>, <span itemprop=datePublished>2008</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vejmelka</span>, 
+<meta itemprop=givenName content="Martin">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Paluš</span>, 
+<meta itemprop=givenName content="Milan">
+M.</span>
+ 
+(<span itemprop=datePublished>2008</span>).
+ <span itemprop=name>Inferring the directionality of coupling with conditional mutual information</span>.<i>
+<span itemprop=about>Physical Review E</span>, 77(2)</i>. <span itemprop=pagination>026214</span>.</span>
+</span></span>)</span>
+. This bias was already
+documented as early as 1989, but was considered manageable if one chose
+a "reasonable number of cells"
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#moddemeijer_estimation_1989><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Rudy"><span itemprop=familyName>Moddemeijer</span></span>, <span itemprop=datePublished>1989</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Moddemeijer</span>, 
+<meta itemprop=givenName content="Rudy">
+R.</span>
+ 
+(<span itemprop=datePublished>1989</span>).
+ <span itemprop=name>On estimation of entropy and mutual information of continuous distributions</span>.<i>
+<span itemprop=about>Signal processing</span>, 16(3)</i>. <span itemprop=pagination>233–248</span>.</span>
+</span></span>)</span>
+. But the
+question of what is "reasonable" is more complicated than it appears.
+For example, Ross et al. note that there is no optimal value of
+$|\Delta|$ that works for all distributions : $N^{0.5}$ works well for
+the square wave distribution but $N^{0.7}$ is better for a Gaussian
+distribution
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#ross_mutual_2014><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Brian C."><span itemprop=familyName>Ross</span></span>, <span itemprop=datePublished>2014</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Ross</span>, 
+<meta itemprop=givenName content="Brian C.">
+B.</span>
+ 
+(<span itemprop=datePublished>2014</span>).
+ <span itemprop=name>Mutual Information between Discrete and Continuous Data Sets</span>.<i>
+<span itemprop=about>PLOS ONE</span>, 9(2)</i>. <span itemprop=pagination>e87357</span>.
+<a href=https://doi.org/10.1371/journal.pone.0087357 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1371/journal.pone.0087357</a></span>
+</span></span><span class=hugo-cite-group>
+<a href=#ross_mutual_2014><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Brian C."><span itemprop=familyName>Ross</span></span>, <span itemprop=datePublished>2014</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Ross</span>, 
+<meta itemprop=givenName content="Brian C.">
+B.</span>
+ 
+(<span itemprop=datePublished>2014</span>).
+ <span itemprop=name>Mutual Information between Discrete and Continuous Data Sets</span>.<i>
+<span itemprop=about>PLOS ONE</span>, 9(2)</i>. <span itemprop=pagination>e87357</span>.
+<a href=https://doi.org/10.1371/journal.pone.0087357 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1371/journal.pone.0087357</a></span>
+</span></span>)</span>
+. Similarly, Seok et al. show that even
+for Gaussian bivariate distributions with the same marginals, the
+"correct" number of bins that gives the best approximation of
+$\II(X;Y)$ varies depending on the strength of the correlation $\rho$
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#seok_mutual_2015><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Junhee"><span itemprop=familyName>Seok</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yeong Seon"><span itemprop=familyName>Kang</span></span>, <span itemprop=datePublished>2015</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Seok</span>, 
+<meta itemprop=givenName content="Junhee">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kang</span>, 
+<meta itemprop=givenName content="Yeong Seon">
+Y.</span>
+ 
+(<span itemprop=datePublished>2015</span>).
+ <span itemprop=name>Mutual information between discrete variables with many categories using recursive adaptive partitioning</span>.<i>
+<span itemprop=about>Scientific Reports</span>, 5</i>. <span itemprop=pagination>10981</span>.</span>
+</span></span>)</span>
+. Note that the same applies for any estimator that
+takes a number of bins as parameter, regardless of how clever the
+discretization scheme is (for example, using B-splines
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#daub_estimating_2004><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Carsten O."><span itemprop=familyName>Daub</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ralf"><span itemprop=familyName>Steuer</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2004</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Daub</span>, 
+<meta itemprop=givenName content="Carsten O.">
+C.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Steuer</span>, 
+<meta itemprop=givenName content="Ralf">
+R.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Selbig</span>, 
+<meta itemprop=givenName content="Joachim">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kloska</span>, 
+<meta itemprop=givenName content="Sebastian">
+S.</span>
+ 
+(<span itemprop=datePublished>2004</span>).
+ <span itemprop=name>Estimating mutual information using B-spline functions–an improved similarity measure for analysing gene expression data</span>.<i>
+<span itemprop=about>BMC bioinformatics</span>, 5(1)</i>. <span itemprop=pagination>118</span>.</span>
+</span></span>)</span>
+). Instead, it is essential to deduce the number
+of bins from the observations
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#darbellay_estimation_1999><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Georges A."><span itemprop=familyName>Darbellay</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Igor"><span itemprop=familyName>Vajda</span></span>, <span itemprop=datePublished>1999</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Darbellay</span>, 
+<meta itemprop=givenName content="Georges A.">
+G.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vajda</span>, 
+<meta itemprop=givenName content="Igor">
+I.</span>
+ 
+(<span itemprop=datePublished>1999</span>).
+ <span itemprop=name>Estimation of the information by an adaptive partitioning of the observation space</span>.<i>
+<span itemprop=about>IEEE Transactions on Information Theory</span>, 45(4)</i>. <span itemprop=pagination>1315–1321</span>.</span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#wang_divergence_2005><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Qing"><span itemprop=familyName>Wang</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sanjeev R."><span itemprop=familyName>Kulkarni</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2005</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Wang</span>, 
+<meta itemprop=givenName content="Qing">
+Q.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kulkarni</span>, 
+<meta itemprop=givenName content="Sanjeev R.">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verdú</span>, 
+<meta itemprop=givenName content="Sergio">
+S.</span>
+ 
+(<span itemprop=datePublished>2005</span>).
+ <span itemprop=name>Divergence estimation of continuous distributions based on data-dependent partitions</span>.<i>
+<span itemprop=about>IEEE Transactions on Information Theory</span>, 51(9)</i>. <span itemprop=pagination>3064–3074</span>.</span>
+</span></span>)</span>
+. Darbellay et al&rsquo;s
+recursive partitioning scheme
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#darbellay_estimation_1999><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Georges A."><span itemprop=familyName>Darbellay</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Igor"><span itemprop=familyName>Vajda</span></span>, <span itemprop=datePublished>1999</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Darbellay</span>, 
+<meta itemprop=givenName content="Georges A.">
+G.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vajda</span>, 
+<meta itemprop=givenName content="Igor">
+I.</span>
+ 
+(<span itemprop=datePublished>1999</span>).
+ <span itemprop=name>Estimation of the information by an adaptive partitioning of the observation space</span>.<i>
+<span itemprop=about>IEEE Transactions on Information Theory</span>, 45(4)</i>. <span itemprop=pagination>1315–1321</span>.</span>
+</span></span>)</span>
+is
+conceptually one of the closest approach to the novel estimator
+introduced in
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#cabeli_learning_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Vincent"><span itemprop=familyName>Cabeli</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cabeli</span>, 
+<meta itemprop=givenName content="Vincent">
+V.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Sella</span>, 
+<meta itemprop=givenName content="Nadir">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Uguzzoni</span>, 
+<meta itemprop=givenName content="Guido">
+G.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Marc">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>Learning clinical networks from medical recordsbased on information estimates in mixed-type data</span>.<i>
+<span itemprop=about>PLoS Computational Biology</span></i>.</span>
+</span></span>)</span>
+, but it is limited in the placement of
+the bins.</p>
+<p>Another common approach is to compute the mutual information using
+analytical formulas, having estimated $p(X)$, $p(Y)$ and $p(X,Y)$. It is
+only feasible for few applications with strong a priori on the data
+distribution, and even if we know the distributions the data is sampled
+from, only few analytical formulas for the information are known
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#darbellay_entropy_2000><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="G. A."><span itemprop=familyName>Darbellay</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="I."><span itemprop=familyName>Vajda</span></span>, <span itemprop=datePublished>2000</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Darbellay</span>, 
+<meta itemprop=givenName content="G. A.">
+G.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vajda</span>, 
+<meta itemprop=givenName content="I.">
+I.</span>
+ 
+(<span itemprop=datePublished>2000</span>).
+ <span itemprop=name>Entropy expressions for multivariate continuous distributions</span>.<i>
+<span itemprop=about>IEEE Transactions on Information Theory</span>, 46(2)</i>. <span itemprop=pagination>709–712</span>.
+<a href=https://doi.org/10.1109/18.825848 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1109/18.825848</a></span>
+</span></span>)</span>
+. Instead of being imposed some priors, the
+density functions can also be estimated via the usual methods using e.g.
+kernel functions
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#moon_estimation_1995><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Young-Il"><span itemprop=familyName>Moon</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Balaji"><span itemprop=familyName>Rajagopalan</span></span>
+<em>& al.</em>, <span itemprop=datePublished>1995</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Moon</span>, 
+<meta itemprop=givenName content="Young-Il">
+Y.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Rajagopalan</span>, 
+<meta itemprop=givenName content="Balaji">
+B.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Lall</span>, 
+<meta itemprop=givenName content="Upmanu">
+U.</span>
+ 
+(<span itemprop=datePublished>1995</span>).
+ <span itemprop=name>Estimation of mutual information using kernel density estimators</span>.<i>
+<span itemprop=about>Physical Review E</span>, 52(3)</i>. <span itemprop=pagination>2318–2321</span>.
+<a href=https://doi.org/10.1103/PhysRevE.52.2318 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1103/PhysRevE.52.2318</a></span>
+</span></span>)</span>
+. But, related to the problem of
+choosing the number of bins, one has to choose the type of kernel and
+its width, which has shown similar bias
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#moddemeijer_estimation_1989><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Rudy"><span itemprop=familyName>Moddemeijer</span></span>, <span itemprop=datePublished>1989</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Moddemeijer</span>, 
+<meta itemprop=givenName content="Rudy">
+R.</span>
+ 
+(<span itemprop=datePublished>1989</span>).
+ <span itemprop=name>On estimation of entropy and mutual information of continuous distributions</span>.<i>
+<span itemprop=about>Signal processing</span>, 16(3)</i>. <span itemprop=pagination>233–248</span>.</span>
+</span></span>)</span>
+.
+It is also exponentially more complex as the support&rsquo;s dimensions
+increase, limiting its use for conditional independence testing even
+with few variable $Z$s in the conditioning set.</p>
+<p>Undoubtedly, the best results on continuous data are obtained with the
+"KSG" estimator from Kraskov, Stögbaueur and Grassberger
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#kraskov_estimating_2004><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Alexander"><span itemprop=familyName>Kraskov</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Harald"><span itemprop=familyName>Stögbauer</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2004</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kraskov</span>, 
+<meta itemprop=givenName content="Alexander">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Stögbauer</span>, 
+<meta itemprop=givenName content="Harald">
+H.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Grassberger</span>, 
+<meta itemprop=givenName content="Peter">
+P.</span>
+ 
+(<span itemprop=datePublished>2004</span>).
+ <span itemprop=name>Estimating mutual information</span>.<i>
+<span itemprop=about>Physical review E</span>, 69(6)</i>. <span itemprop=pagination>066138</span>.</span>
+</span></span>)</span>
+. We will also refer to this approach as the
+$k$-nn approach, as it employs a $k$-nearest neighbor estimation of the
+local entropy. It is based on earlier work by Kozachenko and Leonenko,
+who first derived an estimate of the entropy based on nearest-neighbor
+distances
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#kozachenko_sample_1987><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="L. F."><span itemprop=familyName>Kozachenko</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Nikolai N."><span itemprop=familyName>Leonenko</span></span>, <span itemprop=datePublished>1987</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kozachenko</span>, 
+<meta itemprop=givenName content="L. F.">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Leonenko</span>, 
+<meta itemprop=givenName content="Nikolai N.">
+N.</span>
+ 
+(<span itemprop=datePublished>1987</span>).
+ <span itemprop=name>Sample estimate of the entropy of a random vector</span>.<i>
+<span itemprop=about>Problemy Peredachi Informatsii</span>, 23(2)</i>. <span itemprop=pagination>9–16</span>.</span>
+</span></span>)</span>
+:
+$$\hat{H}_\text{KL}(X) = \frac{1}{N}\sum_{i=1}^N\log \left( \frac{Nc_{d,p}\rho_{k,i}}{k} \right) + \log(k) - \psi(k)$$
+with $\rho_{k,i}$ the distance from the $j$th sample to its $k$th
+nearest neighbor, $c_d$ the volume of the unit ball in $d$ dimensions
+and $\psi(.)$ the digamma function. The original authors introduced this
+formula for a fixed $k=1$, proving its consistency as $N$ increases, and
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#singh_nearest_2003><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Harshinder"><span itemprop=familyName>Singh</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Neeraj"><span itemprop=familyName>Misra</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2003</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Singh</span>, 
+<meta itemprop=givenName content="Harshinder">
+H.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Misra</span>, 
+<meta itemprop=givenName content="Neeraj">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Hnizdo</span>, 
+<meta itemprop=givenName content="Vladimir">
+V.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Fedorowicz</span>, 
+<meta itemprop=givenName content="Adam">
+A.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Demchuk</span>, 
+<meta itemprop=givenName content="Eugene">
+E.</span>
+ 
+(<span itemprop=datePublished>2003</span>).
+ <span itemprop=name>Nearest neighbor estimates of entropy</span>.<i>
+<span itemprop=about>American journal of mathematical and management sciences</span>, 23(3-4)</i>. <span itemprop=pagination>301–321</span>.</span>
+</span></span>)</span>
+proved it later for all $k$. Additionally, Jiao et
+al. derived an uniform upper bound on its performance proving its near
+optimality
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#jiao_nearest_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Jiantao"><span itemprop=familyName>Jiao</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Weihao"><span itemprop=familyName>Gao</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Jiao</span>, 
+<meta itemprop=givenName content="Jiantao">
+J.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Han</span>, 
+<meta itemprop=givenName content="Yanjun">
+Y.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>The Nearest Neighbor Information Estimator is Adaptively Near Minimax Rate-Optimal</span>.<i>
+<span itemprop=about>arXiv:1711.08824 [cs, math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1711.08824 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1711.08824</a></span>
+</span></span>)</span>
+, a first for such estimators.</p>
+<p>Given this strong estimator, a natural way to get to $\hat\II$ is to use
+the chain rule :
+$$\hat\II_\text{3KL} = \hat{H}_\text{KL}(X) + \hat{H}_\text{KL}(Y) - \hat{H}_\text{KL}(X,Y)$$
+This estimator is also consistent and performs fairly well in practice,
+but was shown to be uniformly inferior to the KSG estimator in many
+empirical settings. The KSG estimator is defined as :
+$$\hat\II_\text{KSG}(X;Y) = \psi(k) + \psi(N) - \left&lt; \psi(n_{x,i}+1) + \psi(n_{y,i}+1)\right>$$
+with $n_{x,i}$ the number of points within an $\rho_{k,i}$ distance on
+the $X$ dimension, and $\left&lt; \psi(n_x+1) + \psi(n_y+1)\right>$ the
+average taken on all samples. The $\rho_{k_i}$ distance is usually taken
+with $\ell_\infty$ or $\ell^2$ norm (see next figure). Since its introduction, no other
+estimator seems to be as performant in most settings and it has become
+the go-to solution to estimate $\hat\II$ on continuous data. The
+particularity behind the KSG estimator is to compare $H(X)$, $H(Y)$ and
+$H(X,Y)$ locally to estimate the mutual information directly, instead of
+having to estimate each of the three terms. Recently, Gao et al.
+revealed why this choice leads to uniformly better results than the
+$\hat\II_\text{3KL}$ estimator. They have shown that the better
+performance stems from a <em>correlation boosting</em> effect, the bias of the
+joint entropy is positively correlated to the biases of the marginal
+entropies, which partly cancel each other when subtracting via the chain
+rule
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#gao_demystifying_2016><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Weihao"><span itemprop=familyName>Gao</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sewoong"><span itemprop=familyName>Oh</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2016</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Oh</span>, 
+<meta itemprop=givenName content="Sewoong">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Viswanath</span>, 
+<meta itemprop=givenName content="Pramod">
+P.</span>
+ 
+(<span itemprop=datePublished>2016</span>).
+ <span itemprop=name>Demystifying Fixed k-Nearest Neighbor Information Estimators</span>.<i>
+<span itemprop=about>arXiv:1604.03006 [cs, math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1604.03006 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1604.03006</a></span>
+</span></span>)</span>
+. It makes no assumption on either the
+marginal or joint distributions, and seems to be equitable to all
+relationships
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#kinney_equitability_2014><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Justin B."><span itemprop=familyName>Kinney</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Gurinder S."><span itemprop=familyName>Atwal</span></span>, <span itemprop=datePublished>2014</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kinney</span>, 
+<meta itemprop=givenName content="Justin B.">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Atwal</span>, 
+<meta itemprop=givenName content="Gurinder S.">
+G.</span>
+ 
+(<span itemprop=datePublished>2014</span>).
+ <span itemprop=name>Equitability, mutual information, and the maximal information coefficient</span>.<i>
+<span itemprop=about>Proceedings of the National Academy of Sciences</span>, 111(9)</i>. <span itemprop=pagination>3354–3359</span>.
+<a href=https://doi.org/10.1073/pnas.1309933111 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1073/pnas.1309933111</a></span>
+</span></span>)</span>
+. Somewhat surprisingly,
+rank-ordering the variables still gives correct estimates (as it
+should), although it is not clear whether it should be preferred or not.</p>
+<figure class=align-center>
+<img loading=lazy src=/media/ksg.png#center width=90%> <figcaption>
+Choice of the $\rho_{k,i}$ distance with $\ell_\infty$ norm (left) or $\ell^2$ norm (righ) for the KSG estimator. Figure taken from Gao et al. 2016
+</figcaption>
+</figure>
+<p>It was conveniently adapted to the conditional case, also using a direct
+formula instead of the chain rule
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#vejmelka_inferring_2008><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Martin"><span itemprop=familyName>Vejmelka</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Milan"><span itemprop=familyName>Paluš</span></span>, <span itemprop=datePublished>2008</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vejmelka</span>, 
+<meta itemprop=givenName content="Martin">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Paluš</span>, 
+<meta itemprop=givenName content="Milan">
+M.</span>
+ 
+(<span itemprop=datePublished>2008</span>).
+ <span itemprop=name>Inferring the directionality of coupling with conditional mutual information</span>.<i>
+<span itemprop=about>Physical Review E</span>, 77(2)</i>. <span itemprop=pagination>026214</span>.</span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#tsimpiris_nearest_2012><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Alkiviadis"><span itemprop=familyName>Tsimpiris</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ioannis"><span itemprop=familyName>Vlachos</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2012</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Tsimpiris</span>, 
+<meta itemprop=givenName content="Alkiviadis">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vlachos</span>, 
+<meta itemprop=givenName content="Ioannis">
+I.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kugiumtzis</span>, 
+<meta itemprop=givenName content="Dimitris">
+D.</span>
+ 
+(<span itemprop=datePublished>2012</span>).
+ <span itemprop=name>Nearest neighbor estimate of conditional mutual information in feature selection</span>.<i>
+<span itemprop=about>Expert Systems with Applications</span>, 39(16)</i>. <span itemprop=pagination>12697–12708</span>.</span>
+</span></span>)</span>
+:
+$$\hat\II_\text{KSG}(X;Y|Z) = \psi(k) + \left&lt; \psi(n_{z,i}+1) - \psi(n_{xz,i}+1) - \psi(n_{yz,i}+1)\right>$$</p>
+<p>Still, we note a few disadvantages that discourage its use for general
+constraint-based algorithms. First, the variance and bias of the
+estimation are tied to the choice of the parameter $k$
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#perez-cruz_estimation_2009><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Fernando"><span itemprop=familyName>Pérez-Cruz</span></span>, <span itemprop=datePublished>2009</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Pérez-Cruz</span>, 
+<meta itemprop=givenName content="Fernando">
+F.</span>
+ 
+(<span itemprop=datePublished>2009</span>).
+ <span itemprop=name>
+<i>Estimation of Information Theoretic Measures for Continuous Random Variables</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>Curran Associates, Inc.</span></span>. Retrieved from 
+<a href=https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html itemprop=identifier itemtype=https://schema.org/URL>https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html</a></span>
+</span></span>)</span>
+. The original authors themselves suggest a
+low $k$ ($2-4$) for good a estimation $\hat\II_\text{KSG}$, and much
+larger for independence testing (up to $\simeq N/2$). In general, the
+trade-off is high variance and low bias for small values of $k$, and
+less variance but increased bias for large $k$
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#kinney_equitability_2014><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Justin B."><span itemprop=familyName>Kinney</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Gurinder S."><span itemprop=familyName>Atwal</span></span>, <span itemprop=datePublished>2014</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kinney</span>, 
+<meta itemprop=givenName content="Justin B.">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Atwal</span>, 
+<meta itemprop=givenName content="Gurinder S.">
+G.</span>
+ 
+(<span itemprop=datePublished>2014</span>).
+ <span itemprop=name>Equitability, mutual information, and the maximal information coefficient</span>.<i>
+<span itemprop=about>Proceedings of the National Academy of Sciences</span>, 111(9)</i>. <span itemprop=pagination>3354–3359</span>.
+<a href=https://doi.org/10.1073/pnas.1309933111 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1073/pnas.1309933111</a></span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#holmes_estimation_2019><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Caroline M."><span itemprop=familyName>Holmes</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ilya"><span itemprop=familyName>Nemenman</span></span>, <span itemprop=datePublished>2019</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Holmes</span>, 
+<meta itemprop=givenName content="Caroline M.">
+C.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Nemenman</span>, 
+<meta itemprop=givenName content="Ilya">
+I.</span>
+ 
+(<span itemprop=datePublished>2019</span>).
+ <span itemprop=name>Estimation of mutual information for real-valued data with error bars and controlled bias</span>.<i>
+<span itemprop=about>bioRxiv</span></i>. <span itemprop=pagination>589929</span>.
+<a href=https://doi.org/10.1101/589929 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1101/589929</a></span>
+</span></span>)</span>
+. Secondly, as is
+the case with discrete estimators, the equivalence
+$\hat\II(X;Y) = 0 \Leftrightarrow X \indep Y$ is not respected, as
+variance still exists at independence. Crucially, there are currently no
+results on the distribution of the estimator, either exact nor
+asymptotically, and there is no easy way to test for independence
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#paninski_estimation_2003><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Liam"><span itemprop=familyName>Paninski</span></span>, <span itemprop=datePublished>2003</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Paninski</span>, 
+<meta itemprop=givenName content="Liam">
+L.</span>
+ 
+(<span itemprop=datePublished>2003</span>).
+ <span itemprop=name>Estimation of entropy and mutual information</span>.<i>
+<span itemprop=about>Neural computation</span>, 15(6)</i>. <span itemprop=pagination>1191–1253</span>.</span>
+</span></span>; <span class=hugo-cite-group>
+<a href=#perez-cruz_estimation_2009><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Fernando"><span itemprop=familyName>Pérez-Cruz</span></span>, <span itemprop=datePublished>2009</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Pérez-Cruz</span>, 
+<meta itemprop=givenName content="Fernando">
+F.</span>
+ 
+(<span itemprop=datePublished>2009</span>).
+ <span itemprop=name>
+<i>Estimation of Information Theoretic Measures for Continuous Random Variables</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>Curran Associates, Inc.</span></span>. Retrieved from 
+<a href=https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html itemprop=identifier itemtype=https://schema.org/URL>https://proceedings.neurips.cc/paper/2008/hash/ccb0989662211f61edae2e26d58ea92f-Abstract.html</a></span>
+</span></span>)</span>
+. Runge proposed
+to test for conditional independence using a local permutations scheme,
+which reliably estimates the null distribution but requires
+significantly more computation
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#runge_conditional_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Jakob"><span itemprop=familyName>Runge</span></span>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Runge</span>, 
+<meta itemprop=givenName content="Jakob">
+J.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>
+<i>Conditional independence testing based on a nearest-neighbor estimator of conditional mutual information</i></span>.
+ Retrieved from 
+<a href=http://proceedings.mlr.press/v84/runge18a.html itemprop=identifier itemtype=https://schema.org/URL>http://proceedings.mlr.press/v84/runge18a.html</a></span>
+</span></span>)</span>
+. Berrett and
+Samworth improved slightly on this idea, introducing an independence
+test based on either simulations when marginal distributions are known,
+or resampling when they are not
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#berrett_nonparametric_2019><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="T. B."><span itemprop=familyName>Berrett</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="R. J."><span itemprop=familyName>Samworth</span></span>, <span itemprop=datePublished>2019</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Berrett</span>, 
+<meta itemprop=givenName content="T. B.">
+T.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Samworth</span>, 
+<meta itemprop=givenName content="R. J.">
+R.</span>
+ 
+(<span itemprop=datePublished>2019</span>).
+ <span itemprop=name>Nonparametric independence testing via mutual information</span>.<i>
+<span itemprop=about>Biometrika</span>, 106(3)</i>. <span itemprop=pagination>547–566</span>.
+<a href=https://doi.org/10.1093/biomet/asz024 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1093/biomet/asz024</a></span>
+</span></span>)</span>
+.</p>
+<p>Many other estimators exist, involving ensemble methods
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#moon_ensemble_2017><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Kevin R."><span itemprop=familyName>Moon</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Kumar"><span itemprop=familyName>Sricharan</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2017</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Moon</span>, 
+<meta itemprop=givenName content="Kevin R.">
+K.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Sricharan</span>, 
+<meta itemprop=givenName content="Kumar">
+K.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Hero</span>, 
+<meta itemprop=givenName content="Alfred O.">
+A.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>
+<i>Ensemble estimation of mutual information</i></span>.
+<a href=https://doi.org/10.1109/ISIT.2017.8007086 itemprop=identifier itemtype=https://schema.org/URL>https://doi.org/10.1109/ISIT.2017.8007086</a></span>
+</span></span>)</span>
+, copula transformations
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#ince_statistical_2017><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Robin AA"><span itemprop=familyName>Ince</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Bruno L."><span itemprop=familyName>Giordano</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2017</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Ince</span>, 
+<meta itemprop=givenName content="Robin AA">
+R.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Giordano</span>, 
+<meta itemprop=givenName content="Bruno L.">
+B.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kayser</span>, 
+<meta itemprop=givenName content="Christoph">
+C.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Rousselet</span>, 
+<meta itemprop=givenName content="Guillaume A.">
+G.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gross</span>, 
+<meta itemprop=givenName content="Joachim">
+J.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Schyns</span>, 
+<meta itemprop=givenName content="Philippe G.">
+P.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>A statistical framework for neuroimaging data analysis based on mutual information estimated via a gaussian copula</span>.<i>
+<span itemprop=about>Human brain mapping</span>, 38(3)</i>. <span itemprop=pagination>1541–1573</span>.</span>
+</span></span>)</span>
+,
+dependence graphs
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#noshad_scalable_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Morteza"><span itemprop=familyName>Noshad</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Yu"><span itemprop=familyName>Zeng</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Noshad</span>, 
+<meta itemprop=givenName content="Morteza">
+M.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Zeng</span>, 
+<meta itemprop=givenName content="Yu">
+Y.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Hero III</span>, 
+<meta itemprop=givenName content="Alfred O.">
+A.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>Scalable Mutual Information Estimation using Dependence Graphs</span>.<i>
+<span itemprop=about>arXiv:1801.09125 [cs, math, stat]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1801.09125 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1801.09125</a></span>
+</span></span>)</span>
+, and even deep neural networks
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#belghazi_mine_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Ishmael"><span itemprop=familyName>Belghazi</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sai"><span itemprop=familyName>Rajeswar</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Belghazi</span>, 
+<meta itemprop=givenName content="Ishmael">
+I.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Rajeswar</span>, 
+<meta itemprop=givenName content="Sai">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Baratin</span>, 
+<meta itemprop=givenName content="Aristide">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Hjelm</span>, 
+<meta itemprop=givenName content="R. Devon">
+R.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Courville</span>, 
+<meta itemprop=givenName content="Aaron">
+A.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>MINE: Mutual information neural estimation</span>.<i>
+<span itemprop=about>arXiv preprint arXiv:1801.04062</span></i>.</span>
+</span></span>)</span>
+. Overall, the KSG estimator has shown the best
+performance in the settings that interest us, and is the best
+understood. It has even been adapted to the mixed case and mixture
+variables, as we shall see now.</p>
+<h3 id=mixed-estimators>Mixed estimators<a hidden class=anchor aria-hidden=true href=#mixed-estimators>#</a></h3>
+<p>Compared to the discrete and the continuous case, relatively little work
+has been done on estimating mutual information in the mixed case, where
+$X$ is discrete and $Y$ is continuous, and even less in the case of
+mixture variables.</p>
+<p>Ross et al. extended the KSG estimator to the mixed case, by counting
+the number of nearest neighbors in the continuous space $Y$ on the
+subset of samples that share the same discrete value of $X$. More
+specifically, for each sample $i$, the method first finds the distance
+to the $k$th nearest neighbor which also share the same discrete value,
+and counts the number of neighbors within this distance in the full
+data, noted $m$. This estimator is given by :
+$$\hat\II_\text{Ross}(X;Y) = \psi(N) + \psi(k) - \left&lt; \psi(N_X) - \psi(m+1) )\right>$$
+with $N_X$ the total number of data points that share the same discrete
+value on $X$.</p>
+<p>It was then expanded by Gao et al. to mixture distributions by taking
+the average of the Radon-Nikodym derivative over all samples
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#gao_estimating_2017><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Weihao"><span itemprop=familyName>Gao</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Sreeram"><span itemprop=familyName>Kannan</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2017</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Gao</span>, 
+<meta itemprop=givenName content="Weihao">
+W.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kannan</span>, 
+<meta itemprop=givenName content="Sreeram">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Oh</span>, 
+<meta itemprop=givenName content="Sewoong">
+S.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Viswanath</span>, 
+<meta itemprop=givenName content="Pramod">
+P.</span>
+ 
+(<span itemprop=datePublished>2017</span>).
+ <span itemprop=name>Estimating Mutual Information for Discrete-Continuous Mixtures</span>.<i>
+<span itemprop=about>arXiv:1709.06212 [cs, math]</span></i>. Retrieved from 
+<a href=http://arxiv.org/abs/1709.06212 itemprop=identifier itemtype=https://schema.org/URL>http://arxiv.org/abs/1709.06212</a></span>
+</span></span>)</span>
+. The way to estimate this derivative depends on
+each sample : plug-in estimator when the point is discrete (<em>i.e.</em> more
+than $k$ point share the same value, so $\rho_{i,k}=0$), and KSG
+estimator when there is a locally continuous joint density. The
+intuition behind this procedure is that the Radon-Nikodym derivative is
+well defined for all cases, and that it recovers either the plug-in
+estimator, the KSG estimator, or Ross&rsquo;s estimator depending on the local
+subspace. By then taking the average of all the derivatives, this gives
+the value $\hat\II(X;Y)$ for any distributions $X$ and $Y$. It was
+proven to be consistent, and has shown better results than binning
+procedures or noisy KSG on mixture variables. It shares however the same
+lack of significance test as the other $k$-nn estimators, which makes it
+less adapted to constraint-based algorithms.</p>
+<p>Marx et al. also proposed a mixed estimator based on the Radon-Nikodym
+derivative and adaptive histogram models for the continuous parts of the
+mixture variables
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#marx_estimating_2021><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Alexander"><span itemprop=familyName>Marx</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Lincen"><span itemprop=familyName>Yang</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2021</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Marx</span>, 
+<meta itemprop=givenName content="Alexander">
+A.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Yang</span>, 
+<meta itemprop=givenName content="Lincen">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Leeuwen</span>, 
+<meta itemprop=givenName content="Matthijs">
+M.</span>
+ 
+(<span itemprop=datePublished>2021</span>).
+ <span itemprop=name>
+<i>Estimating Conditional Mutual Information for Discrete-Continuous Mixtures using Multi-Dimensional Adaptive Histograms</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>SIAM</span></span>.</span>
+</span></span>)</span>
+. Just as our approach
+introduced in
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#cabeli_learning_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Vincent"><span itemprop=familyName>Cabeli</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cabeli</span>, 
+<meta itemprop=givenName content="Vincent">
+V.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Sella</span>, 
+<meta itemprop=givenName content="Nadir">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Uguzzoni</span>, 
+<meta itemprop=givenName content="Guido">
+G.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Marc">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>Learning clinical networks from medical recordsbased on information estimates in mixed-type data</span>.<i>
+<span itemprop=about>PLoS Computational Biology</span></i>.</span>
+</span></span>)</span>
+, they devised an heuristic to find
+the optimal discretization according to the Minimum Description Length
+(MDL) principle
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#rissanen_modeling_1978><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Jorma"><span itemprop=familyName>Rissanen</span></span>, <span itemprop=datePublished>1978</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Rissanen</span>, 
+<meta itemprop=givenName content="Jorma">
+J.</span>
+ 
+(<span itemprop=datePublished>1978</span>).
+ <span itemprop=name>Modeling by shortest data description</span>.<i>
+<span itemprop=about>Automatica</span>, 14(5)</i>. <span itemprop=pagination>465–471</span>.</span>
+</span></span>)</span>
+. It also comes with easy
+independence testing with Normalised Maximum Likelihood (NML) correction
+on discrete data, as introduced in
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#affeldt_3off2_2016><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Séverine"><span itemprop=familyName>Affeldt</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2016</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Affeldt</span>, 
+<meta itemprop=givenName content="Séverine">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2016</span>).
+ <span itemprop=name>
+<i>3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>BioMed Central Ltd</span></span>.</span>
+</span></span><span class=hugo-cite-group>
+<a href=#affeldt_3off2_2016><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Séverine"><span itemprop=familyName>Affeldt</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2016</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Affeldt</span>, 
+<meta itemprop=givenName content="Séverine">
+S.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2016</span>).
+ <span itemprop=name>
+<i>3off2: A network reconstruction algorithm based on 2-point and 3-point information statistics</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>BioMed Central Ltd</span></span>.</span>
+</span></span>)</span>
+using the
+factorized NML criteria
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#roos_bayesian_2008><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Teemu"><span itemprop=familyName>Roos</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Tomi"><span itemprop=familyName>Silander</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2008</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Roos</span>, 
+<meta itemprop=givenName content="Teemu">
+T.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Silander</span>, 
+<meta itemprop=givenName content="Tomi">
+T.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Kontkanen</span>, 
+<meta itemprop=givenName content="Petri">
+P.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Myllymaki</span>, 
+<meta itemprop=givenName content="Petri">
+P.</span>
+ 
+(<span itemprop=datePublished>2008</span>).
+ <span itemprop=name>
+<i>Bayesian network structure learning using factorized NML universal models</i></span>.
+ 
+<span itemprop=publisher itemtype=http://schema.org/Organization itemscope>
+<span itemprop=name>IEEE</span></span>.</span>
+</span></span>)</span>
+(which was later redefined
+by Marx et al., proving asymptotic behavior and consistency
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#marx_stochastic_2018><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Alexander"><span itemprop=familyName>Marx</span></span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Jilles"><span itemprop=familyName>Vreeken</span></span>, <span itemprop=datePublished>2018</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/CreativeWork data-type=paper-conference><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Marx</span>, 
+<meta itemprop=givenName content="Alexander">
+A.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Vreeken</span>, 
+<meta itemprop=givenName content="Jilles">
+J.</span>
+ 
+(<span itemprop=datePublished>2018</span>).
+ <span itemprop=name>
+<i>Stochastic Complexity for Testing Conditional Independence on Discrete Data</i></span>.
+</span>
+</span></span>)</span>
+). It is well adapted to constraint-based
+algorithms, however it considers mixture variable in a slightly
+different way from Gao et al (and
+<span class=hugo-cite-intext itemprop=citation>(<span class=hugo-cite-group>
+<a href=#cabeli_learning_2020><span class=visually-hidden>Citation: </span><span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Vincent"><span itemprop=familyName>Cabeli</span></span>, <span itemprop=author itemscope itemtype=https://schema.org/Person><meta itemprop=givenName content="Louis"><span itemprop=familyName>Verny</span></span>
+<em>& al.</em>, <span itemprop=datePublished>2020</span></a><span class=hugo-cite-citation>
+<span itemscope itemtype=https://schema.org/Article data-type=article><span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Cabeli</span>, 
+<meta itemprop=givenName content="Vincent">
+V.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Louis">
+L.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Sella</span>, 
+<meta itemprop=givenName content="Nadir">
+N.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Uguzzoni</span>, 
+<meta itemprop=givenName content="Guido">
+G.</span>, 
+<span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Verny</span>, 
+<meta itemprop=givenName content="Marc">
+M.</span> & <span itemprop=author itemscope itemtype=https://schema.org/Person><span itemprop=familyName>Isambert</span>, 
+<meta itemprop=givenName content="Hervé">
+H.</span>
+ 
+(<span itemprop=datePublished>2020</span>).
+ <span itemprop=name>Learning clinical networks from medical recordsbased on information estimates in mixed-type data</span>.<i>
+<span itemprop=about>PLoS Computational Biology</span></i>.</span>
+</span></span>)</span>
+).</p>
+<p>This difference is best explained through an example. Let $(X,Y)$ be a
+mixture of one continuous and one discrete distribution. The continuous
+distribution is a bivariate Gaussian, with mean $\mu = 0$, marginal
+variance $\sigma=1$ and correlation $\rho$. The discrete distribution is
+two binary variables, with probabilities
+$p(X=1,Y=1) = p(X=-1,Y=-1) = \beta$ and
+$p(X=1,Y=-1) = p(X=-1,Y=1) = \beta$. These two distributions are then
+mixed with probability $p_{con}$ and $p_{dis}$ respectively. The ground
+truth as derived by Gao et al. is given by :</p>
+<p>$$\begin{aligned}
+\label{eq:mixture}
+\begin{split}
+\II(X;Y) = & \frac{-p_{con}}{2} \times \log(1 - \rho^2) + \frac{\beta}{2} \times \log\frac{\beta/2}{p_{dis}^2} + \frac{(1 - \beta)}{2} \times \log\frac{(1-\beta)/2}{p_{dis}^2} \\
+& - p_{con}\times \log p_{con} - p_{dis}\times \log p_{dis}
+\end{split}\end{aligned}$$</p>
+<p>Marx et al. used a different ground truth for this distribution, without
+the last two terms of the sum,
+$- p_{con}\times \log p_{con} - p_{dis}\times \log p_{dis}$. In their
+framework, $X \indep Y$ and $\II(X;Y)=0$ if and only if $\rho=0$ and
+$\beta=0.5$. It is justified if one considers that the continuous and
+discrete parts do not share the same space, acting more like separate
+dimensions of the joint distribution. On the other hand, if we consider
+that all parts of $X$ and $Y$ share the same euclidean space, some
+information is "created" from the structure of the joint distribution,
+given by $- p_{con}\times \log p_{con} - p_{dis}\times \log p_{dis}$
+(which equals to $\log2$ when $p_{con} = p_{dis} = 0.5$). Indeed, even
+when $\rho=0$ and $\beta=0.5$, the distribution $p(x,y)$ is far from
+$p(x)p(y)$ due to the constraints imposed by sharing the same space:</p>
+<p><figure class=align-center>
+<img loading=lazy src=/media/mixed_shuf_separated.png#center width=60%> <figcaption>
+Discrete and continuous parts are kept separated, as in different dimensions. The mutual information is $\log 2$, as measured by our optimal discretization scheme
+</figcaption>
+</figure>
+<figure class=align-center>
+<img loading=lazy src=/media/mixed_shuf.png#center width=60%> <figcaption>
+All data points are on the same euclidean space and the null hypothesis is $p(x,y)=p(x)p(y)$, and $\II(X;Y)=0$
+</figcaption>
+</figure>
+</p>
+<p>The second view is closer to the master definition of mutual information
+which implies that we can use any
+partitioning to discretize $X$ and $Y$, potentially combining discrete
+and continuous parts in a single bin. This also corresponds to the
+approach taken to develop our own estimator and significance test based on optimal binning of
+$X,Y$, introduced in a future post.</p>
+</div>
+<footer class=post-footer>
+</footer><div id=disqus_thread></div>
+<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//vcabe-li.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
+<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</article>
+</main>
+<script type=text/javascript defer>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],macros:{II:"{\\operatorname{I}}",HH:"{\\operatorname{H}}",indep:"{\\perp\\!\\!\\!\\perp}",notindep:"{\\not\\perp\\!\\!\\!\\perp}"}},svg:{fontCache:'global'}}</script>
+<script type=text/javascript id=MathJax-script defer src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script>
+<script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js type=text/javascript></script>
+<link rel=stylesheet type=text/css href=/hugo-cite.css>
+</body>
+</html>
