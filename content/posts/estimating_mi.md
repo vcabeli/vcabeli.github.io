@@ -31,7 +31,7 @@ level. Using the chain rule, we actually only need an entropy
 estimator $\hat{H}$ to get an estimation $\hat{\II}$. Using the observed
 frequencies $\hat{p}_i$ with $i \in [1,m]$, we get what is called the
 \"plug-in\" or \"naive\" estimator :
-$$\hat{H}\_\text{Naive} = -\sum\_{i=1}^{m} p\_i \log p\_i$$ Note that it is
+$$\hat{H}\_\text{Naive} = -\sum\_{i=1}^{m} \hat{p}\_i \log \hat{p}\_i$$ Note that it is
 also the maximum likelihood estimator from the observed data. It is
 however suboptimal, it has long been known that it is negatively biased
 everywhere {{<cite "paninski_estimation_2003">}}. The short explanation is that

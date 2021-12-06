@@ -1,3 +1,9 @@
 .post-content p {
     text-align: justify;
 }
+
+.header-img {
+  display: none;
+  width: 100%;
+  background-size: cover;
+}

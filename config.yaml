@@ -14,3 +14,14 @@ params:
         Content: Digressions about causal inference, information theory and maybe more !
 
     comments: true
+
+menu:
+    main:
+        - identifier: about
+          name: About
+          url: /about/
+          weight: 10
+        - identifier: search
+          name: Search
+          url: /search/
+          weight: 20
