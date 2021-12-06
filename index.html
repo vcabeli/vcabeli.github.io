@@ -7,7 +7,7 @@
 <meta name=description content>
 <meta name=author content>
 <link rel=canonical href=https://vcabe.li/>
-<link crossorigin=anonymous href=/assets/css/stylesheet.min.9dca99a7fae9a1e5b7ada7addffbbc56005c68955546828e27120d9cd51003b9.css integrity="sha256-ncqZp/rpoeW3raet3/u8VgBcaJVVRoKOJxINnNUQA7k=" rel="preload stylesheet" as=style>
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.9399b687cb22049d993961bb359a8b61e432681fbfb99a46ed166af966922bb7.css integrity="sha256-k5m2h8siBJ2ZOWG7NZqLYeQyaB+/uZpG7RZq+WaSK7c=" rel="preload stylesheet" as=style>
 <link rel=icon href=https://vcabe.li/favicon.ico>
 <link rel=icon type=image/png sizes=16x16 href=https://vcabe.li/favicon-16x16.png>
 <link rel=icon type=image/png sizes=32x32 href=https://vcabe.li/favicon-32x32.png>
@@ -20,7 +20,11 @@
 <noscript>
 <style>#theme-toggle,.top-link{display:none}</style>
 <style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
-</noscript><meta property="og:title" content="VCabeli">
+</noscript><img .header-img style=position:absolute;width:100%;background-size:cover src=/media/banners/Renoir_yeux.png alt=banner id=banner>
+<script type=text/javascript defer>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],macros:{II:"{\\operatorname{I}}",HH:"{\\operatorname{H}}",indep:"{\\perp\\!\\!\\!\\perp}",notindep:"{\\not\\perp\\!\\!\\!\\perp}"}},svg:{fontCache:'global'}}</script>
+<script type=text/javascript id=MathJax-script defer src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script>
+<script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js type=text/javascript></script>
+<link rel=stylesheet type=text/css href=/hugo-cite.css><meta property="og:title" content="VCabeli">
 <meta property="og:description" content>
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vcabe.li/">
@@ -32,6 +36,7 @@
 <body class=list id=top>
 <script>window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
 <header class=header>
+<img .header-img src=/media/banners/Renoir_yeux.png alt=banner id=banner>
 <nav class=nav>
 <div class=logo>
 <a href=https://vcabe.li accesskey=h title="VCabeli (Alt + H)">VCabeli</a>
@@ -39,6 +44,16 @@
 </span>
 </div>
 <ul id=menu>
+<li>
+<a href=https://vcabe.li/about/ title=About>
+<span>About</span>
+</a>
+</li>
+<li>
+<a href=https://vcabe.li/search/ title="Search (Alt + /)" accesskey=/>
+<span>Search</span>
+</a>
+</li>
 </ul>
 </nav>
 </header>
@@ -89,9 +104,17 @@
 <a class=entry-link aria-label="post link to Introduction to information theoretic measures" href=https://vcabe.li/posts/intro_to_info_theory/></a>
 </article>
 </main>
-<script type=text/javascript defer>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],macros:{II:"{\\operatorname{I}}",HH:"{\\operatorname{H}}",indep:"{\\perp\\!\\!\\!\\perp}",notindep:"{\\not\\perp\\!\\!\\!\\perp}"}},svg:{fontCache:'global'}}</script>
-<script type=text/javascript id=MathJax-script defer src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js></script>
-<script src=https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js type=text/javascript></script>
-<link rel=stylesheet type=text/css href=/hugo-cite.css>
+<footer class=footer>
+<span>&copy; 2021 <a href=https://vcabe.li>VCabeli</a></span>
+<span>
+Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://git.io/hugopapermod rel=noopener target=_blank>PaperMod</a>
+</span>
+</footer>
+<a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a>
+<script>let menu=document.getElementById('menu');menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",function(b){b.preventDefault();var a=this.getAttribute("href").substr(1);window.matchMedia('(prefers-reduced-motion: reduce)').matches?document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView({behavior:"smooth"}),a==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${a}`)})})</script>
+<script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script>
 </body>
 </html>
