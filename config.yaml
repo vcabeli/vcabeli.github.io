@@ -13,7 +13,7 @@ params:
         Title: Vincent's blog
         Content: Digressions about causal inference, information theory and maybe more !
 
-    comments: true
+    comments: false
 
 menu:
     main:
